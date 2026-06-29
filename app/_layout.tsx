@@ -1,24 +1,52 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { Stack } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
-import 'react-native-reanimated';
 
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useFonts } from "expo-font";
+import { Slot } from "expo-router";
+import * as SplashScreen from "expo-splash-screen";
+import { StatusBar } from "expo-status-bar";
+import { useEffect, useState } from "react";
+import { Alert } from "react-native";
+import "react-native-gesture-handler";
+import "react-native-reanimated";
+import { SafeAreaView } from "react-native-safe-area-context";
 
-export const unstable_settings = {
-  anchor: '(tabs)',
-};
 
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
+  const [isReady, setIsReady] = useState(false);
+
+  const [fontsLoaded] = useFonts({
+    "OpenSans-Regular": require("../assets/fonts/OpenSans-Regular.ttf"),
+    "OpenSans-Bold": require("../assets/fonts/OpenSans-Bold.ttf"),
+    "OpenSans-Medium": require("../assets/fonts/OpenSans-Medium.ttf"),
+  });
+
+  useEffect(() => {
+    async function prepare() {
+      try {
+        await SplashScreen.preventAutoHideAsync();
+      } catch (e) {
+        console.warn(e);
+      } finally {
+        setIsReady(true);
+      }
+    }
+
+    prepare();
+  }, []);
+
+  useEffect(() => {
+    if (isReady && fontsLoaded) {
+      SplashScreen.hideAsync();
+    }
+  }, [isReady, fontsLoaded]);
+
+  if (!isReady || !fontsLoaded) {
+    return null;
+  }
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
-      </Stack>
-      <StatusBar style="auto" />
-    </ThemeProvider>
+    <SafeAreaView style={{ flex: 1 }}>
+        <StatusBar style="dark" backgroundColor="#fff" />
+        <Slot />
+    </SafeAreaView>
   );
 }
