@@ -1,87 +1,103 @@
-// components/crowdfund/CrowdFundCard.tsx
 import { CrowdFundItem } from "@/api/type";
-import CustomText from "@/app/shared/text/CustomText";
-import { Colors } from "@/constants/Colors";
+import { Ionicons } from "@expo/vector-icons";
 import React, { useEffect, useRef } from "react";
-import { Animated, StyleSheet, TouchableOpacity, View } from "react-native";
+import { Animated, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
+const palette = {
+  ink: "#171233",
+  indigo: "#2E2470",
+  violet: "#6D5FE0",
+  gold: "#E4A93B",
+  goldDeep: "#946A17",
+  goldLight: "#FBEED2",
+  bg: "#FFFFFF",
+  mist: "#F1EEFB",
+  hairline: "#E9E6F2",
+  muted: "#8C87A3",
+} as const;
+
+const FONT_NUMERIC = "SpaceGrotesk_600SemiBold";
 
 interface CrowdFundCardProps {
   item: CrowdFundItem;
   onPress: (item: CrowdFundItem) => void;
 }
 
-const CrowdFundCard: React.FC<CrowdFundCardProps> = ({ item, onPress }) => {
-  const calculateProgress = (raised: number, target: number) => {
-    return Math.min((raised / target) * 100, 100);
-  };
+const formatNaira = (value: number): string =>
+  "₦" + Number(value).toLocaleString("en-NG", { maximumFractionDigits: 0 });
 
-  const progress = calculateProgress(item.raisedAmount, item.targetAmount);
-  const slideAnim = useRef(new Animated.Value(0)).current;
+const CrowdFundCard: React.FC<CrowdFundCardProps> = ({ item, onPress }) => {
+  const progress = Math.min((item.raisedAmount / item.targetAmount) * 100, 100);
+
+  const animation = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    Animated.timing(slideAnim, {
+    Animated.timing(animation, {
       toValue: progress,
-      duration: 1000,
+      duration: 900,
       useNativeDriver: false,
     }).start();
   }, [progress]);
 
   return (
-    <TouchableOpacity
-      style={styles.card}
-      onPress={() => onPress(item)}
-      activeOpacity={0.7}
-    >
-      <View style={styles.cardHeader}>
-        <CustomText variant="h4" bold style={styles.cardTitle}>
-          {item.name}
-        </CustomText>
-        <View style={styles.codeBadge}>
-          <CustomText style={styles.codeText}>{item.code}</CustomText>
+    <TouchableOpacity activeOpacity={0.85} onPress={() => onPress(item)} style={styles.card}>
+      {/* HEADER */}
+      <View style={styles.header}>
+        <View style={styles.iconBox}>
+          <Ionicons name="people" size={20} color={palette.indigo} />
         </View>
-      </View>
 
-      <CustomText variant="h6" style={styles.cardDetails}>
-        {item.details}
-      </CustomText>
+        <View style={styles.headerText}>
+          <Text style={styles.title} numberOfLines={1}>
+            {item.name}
+          </Text>
 
-      <View style={styles.cardFooter}>
-        <View style={styles.cardStats}>
-          <View>
-            <CustomText variant="caption" style={styles.statLabel}>
-              Duration
-            </CustomText>
-            <CustomText variant="h6" bold>
-              {item.duration}
-            </CustomText>
-          </View>
-          <View>
-            <CustomText variant="caption" style={styles.statLabel}>
-              Target
-            </CustomText>
-            <CustomText variant="h6" bold>
-              ₦{item.targetAmount.toLocaleString()}
-            </CustomText>
-          </View>
-          <View>
-            <CustomText variant="caption" style={styles.statLabel}>
-              Raised
-            </CustomText>
-            <CustomText variant="h6" bold style={styles.raisedText}>
-              ₦{item.raisedAmount.toLocaleString()}
-            </CustomText>
+          <View style={styles.typeRow}>
+            <View style={styles.badge}>
+              <Ionicons
+                name={item.code ? "lock-closed-outline" : "globe-outline"}
+                size={11}
+                color={palette.indigo}
+              />
+              <Text style={styles.badgeText}>{item.code ? "Private" : "Public"}</Text>
+            </View>
+
+            {item.code && (
+              <View style={styles.codeBadge}>
+                <Text style={styles.code}>{item.code}</Text>
+              </View>
+            )}
           </View>
         </View>
       </View>
 
-      <View style={styles.progressContainer}>
-        <View style={styles.progressTrack}>
+      {/* DESCRIPTION */}
+      {item.details ? (
+        <Text style={styles.description} numberOfLines={2}>
+          {item.details}
+        </Text>
+      ) : null}
+
+      {/* PROGRESS */}
+      <View style={styles.progressBlock}>
+        <View style={styles.progressTop}>
+          <View>
+            <Text style={styles.small}>Raised</Text>
+            <Text style={styles.raised}>{formatNaira(item.raisedAmount)}</Text>
+            <Text style={styles.target}>of {formatNaira(item.targetAmount)} target</Text>
+          </View>
+
+          <View style={styles.percentPill}>
+            <Text style={styles.percentText}>{Math.round(progress)}%</Text>
+          </View>
+        </View>
+
+        <View style={styles.track}>
           <Animated.View
             style={[
-              styles.progressFill,
+              styles.fill,
               {
-                width: slideAnim.interpolate({
+                width: animation.interpolate({
                   inputRange: [0, 100],
                   outputRange: ["0%", "100%"],
                 }),
@@ -89,9 +105,12 @@ const CrowdFundCard: React.FC<CrowdFundCardProps> = ({ item, onPress }) => {
             ]}
           />
         </View>
-        <CustomText variant="caption" style={styles.progressText}>
-          {Math.round(progress)}%
-        </CustomText>
+      </View>
+
+      {/* META FOOTER */}
+      <View style={styles.footer}>
+        <Ionicons name="time-outline" size={14} color={palette.muted} />
+        <Text style={styles.durationText}>{item.duration}</Text>
       </View>
     </TouchableOpacity>
   );
@@ -99,77 +118,102 @@ const CrowdFundCard: React.FC<CrowdFundCardProps> = ({ item, onPress }) => {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: Colors.light.white,
-    borderRadius: 12,
-    padding: 16,
+    backgroundColor: palette.bg,
+    borderRadius: 24,
+    padding: 18,
     marginBottom: 16,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
+    borderWidth: 1,
+    borderColor: palette.hairline,
+    shadowColor: palette.indigo,
+    shadowOpacity: 0.06,
+    shadowRadius: 12,
     elevation: 3,
   },
-  cardHeader: {
+
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  iconBox: {
+    width: 44,
+    height: 44,
+    borderRadius: 14,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: palette.mist,
+  },
+  headerText: { flex: 1 },
+  title: { fontSize: 16, fontWeight: "700", color: palette.ink },
+
+  typeRow: { flexDirection: "row", gap: 8, marginTop: 6 },
+  badge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    backgroundColor: palette.mist,
+    paddingHorizontal: 9,
+    paddingVertical: 4,
+    borderRadius: 20,
+  },
+  badgeText: { fontSize: 11, color: palette.indigo, fontWeight: "700" },
+  codeBadge: {
+    backgroundColor: palette.goldLight,
+    paddingHorizontal: 10,
+    justifyContent: "center",
+    borderRadius: 20,
+  },
+  code: { color: palette.goldDeep, fontSize: 11, fontWeight: "800" },
+
+  description: {
+    marginTop: 14,
+    color: palette.muted,
+    fontSize: 13,
+    lineHeight: 19,
+  },
+
+  progressBlock: { marginTop: 18 },
+  progressTop: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "flex-start",
-    marginBottom: 8,
+    marginBottom: 10,
   },
-  cardTitle: {
-    flex: 1,
-    marginRight: 8,
+  small: { color: palette.muted, fontSize: 11 },
+  raised: {
+    fontFamily: FONT_NUMERIC,
+    fontSize: 19,
+    color: palette.ink,
+    marginTop: 2,
   },
-  codeBadge: {
-    backgroundColor: Colors.light.primary,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 4,
+  target: { color: palette.muted, fontSize: 12, marginTop: 3 },
+  percentPill: {
+    backgroundColor: palette.mist,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 999,
   },
-  codeText: {
-    color: Colors.light.white,
-    fontSize: 10,
-    fontFamily: "RedHatDisplay-Bold",
-  },
-  cardDetails: {
-    color: Colors.light.text2,
-    marginBottom: 12,
-  },
-  cardFooter: {
-    marginBottom: 12,
-  },
-  cardStats: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-  },
-  statLabel: {
-    color: Colors.light.text2,
-    marginBottom: 2,
-  },
-  raisedText: {
-    color: Colors.light.success,
-  },
-  progressContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-  },
-  progressTrack: {
-    flex: 1,
-    height: 6,
-    backgroundColor: Colors.light.grey100,
-    borderRadius: 3,
+  percentText: { color: palette.indigo, fontWeight: "800", fontSize: 12 },
+
+  track: {
+    height: 8,
+    backgroundColor: palette.mist,
+    borderRadius: 20,
     overflow: "hidden",
   },
-  progressFill: {
+  fill: {
     height: "100%",
-    backgroundColor: Colors.light.primary,
-    borderRadius: 3,
+    backgroundColor: palette.gold,
+    borderRadius: 20,
   },
-  progressText: {
-    color: Colors.light.text2,
-    minWidth: 32,
-    textAlign: "right",
+
+  footer: {
+    marginTop: 14,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
   },
+  durationText: { color: palette.muted, fontSize: 12 },
 });
 
 export default CrowdFundCard;

@@ -1,8 +1,13 @@
 import CustomText from "@/app/shared/text/CustomText";
-import { Colors } from "@/constants/Colors";
+import { SFColors } from "@/constants/theme";
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
-import { StyleSheet, TouchableOpacity, View } from "react-native";
+import {
+  StyleSheet,
+  TouchableOpacity,
+  View,
+} from "react-native";
+
 
 interface FloatingActionButtonProps {
   isOpen: boolean;
@@ -11,101 +16,246 @@ interface FloatingActionButtonProps {
   onAcceptPress: () => void;
 }
 
-const FloatingActionButton: React.FC<FloatingActionButtonProps> = ({
+
+const FloatingActionButton: React.FC<
+  FloatingActionButtonProps
+> = ({
   isOpen,
   onToggle,
   onCreatePress,
   onAcceptPress,
 }) => {
+
+
   return (
-    <View style={styles.floatingContainer}>
+
+    <View style={styles.container}>
+
+
       {isOpen && (
-        <View style={styles.floatingOptions}>
+
+        <View style={styles.menu}>
+
+
           <TouchableOpacity
-            style={[styles.floatingOption, styles.createOption]}
+            activeOpacity={0.85}
             onPress={onCreatePress}
+            style={styles.actionCard}
           >
-            <Ionicons
-              name="add-circle-outline"
-              size={24}
-              color={Colors.light.white}
-            />
-            <CustomText style={styles.floatingOptionText}>Create</CustomText>
+
+            <View style={styles.iconPurple}>
+
+              <Ionicons
+                name="sparkles-outline"
+                size={22}
+                color={SFColors.white}
+              />
+
+            </View>
+
+
+            <View>
+
+              <CustomText style={styles.actionTitle}>
+                Create Squad
+              </CustomText>
+
+              <CustomText style={styles.actionSub}>
+                Start a new mission
+              </CustomText>
+
+            </View>
+
+
           </TouchableOpacity>
+
+
+
+
+
           <TouchableOpacity
-            style={[styles.floatingOption, styles.acceptOption]}
+            activeOpacity={0.85}
             onPress={onAcceptPress}
+            style={styles.actionCard}
           >
-            <Ionicons
-              name="enter-outline"
-              size={24}
-              color={Colors.light.white}
-            />
-            <CustomText style={styles.floatingOptionText}>Accept</CustomText>
+
+
+            <View style={styles.iconGold}>
+
+              <Ionicons
+                name="ticket-outline"
+                size={22}
+                color={SFColors.white}
+              />
+
+            </View>
+
+
+            <View>
+
+              <CustomText style={styles.actionTitle}>
+                Join Squad
+              </CustomText>
+
+
+              <CustomText style={styles.actionSub}>
+                Enter invite code
+              </CustomText>
+
+            </View>
+
+
           </TouchableOpacity>
+
+
         </View>
+
       )}
-      <TouchableOpacity style={styles.floatingButton} onPress={onToggle}>
+
+
+
+
+      <TouchableOpacity
+        activeOpacity={0.9}
+        onPress={onToggle}
+        style={[
+          styles.mainButton,
+          isOpen && styles.openButton,
+        ]}
+      >
+
         <Ionicons
-          name={isOpen ? "close" : "add"}
-          size={32}
-          color={Colors.light.white}
+          name={
+            isOpen
+              ? "close"
+              : "add"
+          }
+          size={34}
+          color={SFColors.white}
         />
+
+
       </TouchableOpacity>
+
+
     </View>
+
   );
 };
 
+
+
 const styles = StyleSheet.create({
-  floatingContainer: {
-    position: "absolute",
-    bottom: 10,
-    right: 20,
-    alignItems: "center",
+
+  container:{
+    position:"absolute",
+    right:20,
+    bottom:22,
+    alignItems:"flex-end",
   },
-  floatingOptions: {
-    marginBottom: 16,
-    alignItems: "center",
+
+
+
+  menu:{
+    marginBottom:26,
+    gap:12,
   },
-  floatingOption: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: Colors.light.primary,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 25,
-    marginBottom: 10,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 5,
+
+
+
+  actionCard:{
+    width:220,
+
+    backgroundColor:SFColors.white,
+
+    padding:12,
+
+    borderRadius:22,
+
+    flexDirection:"row",
+    alignItems:"center",
+
+    gap:12,
+
+
+    borderWidth:1,
+    borderColor:SFColors.border,
+
+
+    shadowColor:SFColors.purple600,
+    shadowOpacity:0.18,
+    shadowRadius:12,
+    elevation:8,
   },
-  createOption: {
-    backgroundColor: Colors.light.primary,
+
+
+
+  iconPurple:{
+    width:44,
+    height:44,
+    borderRadius:16,
+
+    backgroundColor:SFColors.purple600,
+
+    alignItems:"center",
+    justifyContent:"center",
   },
-  acceptOption: {
-    backgroundColor: Colors.light.success,
+
+
+
+  iconGold:{
+    width:44,
+    height:44,
+    borderRadius:16,
+
+    backgroundColor:SFColors.goldDeep,
+
+    alignItems:"center",
+    justifyContent:"center",
   },
-  floatingOptionText: {
-    color: Colors.light.white,
-    marginLeft: 8,
-    fontSize: 14,
-    fontFamily: "RedHatDisplay-Bold",
+
+
+
+  actionTitle:{
+    fontWeight:"900",
+    color:SFColors.textPrimary,
+    fontSize:14,
   },
-  floatingButton: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: Colors.light.primary,
-    justifyContent: "center",
-    alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 6,
-    elevation: 8,
+
+
+  actionSub:{
+    marginTop:3,
+    color:SFColors.textSecondary,
+    fontSize:11,
   },
+
+
+
+  mainButton:{
+    width:66,
+    height:66,
+
+    borderRadius:33,
+
+    backgroundColor:SFColors.purple600,
+
+    alignItems:"center",
+    justifyContent:"center",
+
+
+    shadowColor:SFColors.purple600,
+    shadowOpacity:0.35,
+    shadowRadius:18,
+    elevation:10,
+  },
+
+
+
+  openButton:{
+    backgroundColor:SFColors.purple900,
+  },
+
 });
+
 
 export default FloatingActionButton;

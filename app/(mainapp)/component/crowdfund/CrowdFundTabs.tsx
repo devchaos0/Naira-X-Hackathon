@@ -1,8 +1,14 @@
-// components/crowdfund/CrowdFundTabs.tsx
-import CustomText from "@/app/shared/text/CustomText";
-import { Colors } from "@/constants/Colors";
-import React from "react";
-import { StyleSheet, TouchableOpacity, View } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import React, { useEffect, useRef } from "react";
+import { Animated, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+
+const palette = {
+  ink: "#171233",
+  indigo: "#2E2470",
+  bg: "#FFFFFF",
+  mist: "#F1EEFB",
+  muted: "#8C87A3",
+} as const;
 
 interface CrowdFundTabsProps {
   activeTab: "my" | "all";
@@ -17,61 +23,131 @@ const CrowdFundTabs: React.FC<CrowdFundTabsProps> = ({
   myCount,
   allCount,
 }) => {
+  const slide = useRef(new Animated.Value(activeTab === "my" ? 0 : 1)).current;
+
+  useEffect(() => {
+    Animated.spring(slide, {
+      toValue: activeTab === "my" ? 0 : 1,
+      useNativeDriver: false, 
+      damping: 18,
+      stiffness: 180,
+    }).start();
+  }, [activeTab, slide]);
+
+  const indicatorLeft = slide.interpolate({
+    inputRange: [0, 1],
+    outputRange: ["2%", "50%"],
+  });
+
   return (
-    <View style={styles.tabsContainer}>
-      <TouchableOpacity
-        style={[styles.tab, activeTab === "my" && styles.activeTab]}
-        onPress={() => onTabChange("my")}
-      >
-        <CustomText
-          variant="h5"
-          bold={activeTab === "my"}
-          style={[styles.tabText, activeTab === "my" && styles.activeTabText]}
+    <View style={styles.wrapper}>
+      <View style={styles.container}>
+        <Animated.View style={[styles.indicator, { left: indicatorLeft }]} />
+
+        <TouchableOpacity
+          activeOpacity={0.8}
+          onPress={() => onTabChange("my")}
+          style={styles.tab}
         >
-          My Crowd Funds ({myCount})
-        </CustomText>
-      </TouchableOpacity>
-      <TouchableOpacity
-        style={[styles.tab, activeTab === "all" && styles.activeTab]}
-        onPress={() => onTabChange("all")}
-      >
-        <CustomText
-          variant="h5"
-          bold={activeTab === "all"}
-          style={[styles.tabText, activeTab === "all" && styles.activeTabText]}
+          <Ionicons
+            name="rocket-outline"
+            size={16}
+            color={activeTab === "my" ? palette.bg : palette.muted}
+          />
+          <Text style={[styles.label, activeTab === "my" && styles.labelActive]}>
+            My Squads
+          </Text>
+          <View style={[styles.countChip, activeTab === "my" && styles.countChipActive]}>
+            <Text style={[styles.countText, activeTab === "my" && styles.countTextActive]}>
+              {myCount}
+            </Text>
+          </View>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          activeOpacity={0.8}
+          onPress={() => onTabChange("all")}
+          style={styles.tab}
         >
-          All Crowd Funds ({allCount})
-        </CustomText>
-      </TouchableOpacity>
+          <Ionicons
+            name="globe-outline"
+            size={16}
+            color={activeTab === "all" ? palette.bg : palette.muted}
+          />
+          <Text style={[styles.label, activeTab === "all" && styles.labelActive]}>
+            Explore
+          </Text>
+          <View style={[styles.countChip, activeTab === "all" && styles.countChipActive]}>
+            <Text style={[styles.countText, activeTab === "all" && styles.countTextActive]}>
+              {allCount}
+            </Text>
+          </View>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  tabsContainer: {
-    flexDirection: "row",
-    backgroundColor: Colors.light.white,
+  wrapper: {
     paddingHorizontal: 20,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.light.border,
+    paddingTop: 14,
+    paddingBottom: 10,
+    backgroundColor: palette.bg,
   },
+
+  container: {
+    flexDirection: "row",
+    backgroundColor: palette.mist,
+    borderRadius: 16,
+    padding: 4,
+    position: "relative",
+    height: 48,
+  },
+
+  indicator: {
+    position: "absolute",
+    top: 4,
+    bottom: 4,
+    width: "48%",
+    borderRadius: 12,
+    backgroundColor: palette.indigo,
+  },
+
   tab: {
     flex: 1,
-    paddingVertical: 10,
+    flexDirection: "row",
     alignItems: "center",
-    borderBottomWidth: 3,
-    borderBottomColor: "transparent",
+    justifyContent: "center",
+    gap: 6,
+    zIndex: 1,
   },
-  activeTab: {
-    borderBottomColor: Colors.light.primary,
+
+  label: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: palette.muted,
   },
-  tabText: {
-    color: Colors.light.text2,
+  labelActive: { color: palette.bg },
+
+  countChip: {
+    minWidth: 20,
+    height: 20,
+    paddingHorizontal: 5,
+    borderRadius: 10,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: palette.bg,
   },
-  activeTabText: {
-    color: Colors.light.baseblack,
+  countChipActive: {
+    backgroundColor: "rgba(255,255,255,0.22)",
   },
+  countText: {
+    fontSize: 11,
+    fontWeight: "700",
+    color: palette.muted,
+  },
+  countTextActive: { color: palette.bg },
 });
 
 export default CrowdFundTabs;

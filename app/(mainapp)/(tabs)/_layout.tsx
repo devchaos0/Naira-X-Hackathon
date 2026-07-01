@@ -1,105 +1,178 @@
 import { ChatIcon } from "@/assets/svg/ChatIcon";
 import { CrowdFundIcon } from "@/assets/svg/CrowdFundIcon";
-import { HomeIcon } from "@/assets/svg/HomeIcon";
 import { SettingsIcon } from "@/assets/svg/SettingsIcon";
-import { Colors } from "@/constants/Colors";
+import { SFColors } from "@/constants/theme";
+import { Feather } from "@expo/vector-icons";
+import { BottomTabBarProps } from "@react-navigation/bottom-tabs";
 import { Tabs } from "expo-router";
-import { Platform, StyleSheet, View } from "react-native";
+import React, { useEffect, useRef } from "react";
+import { Animated, Pressable, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-export default function TabLayout() {
-  const insets = useSafeAreaInsets();
+const ICON_SIZE = 20;
+const ACTIVE_COLOR = SFColors.purple600;
 
+const ICONS: Record<string, (color: string) => React.ReactNode> = {
+  index: (color) => <ChatIcon width={ICON_SIZE} height={ICON_SIZE} fill={color} />,
+  CrowdFund: (color) => (
+    <CrowdFundIcon width={ICON_SIZE} height={ICON_SIZE} fill={color} />
+  ),
+  Setting: (color) => (
+    <SettingsIcon width={ICON_SIZE} height={ICON_SIZE} fill={color} />
+  ),
+  leaderboard: (color) => (
+    <Feather name="award" size={ICON_SIZE} color={"black"} />
+  ),
+};
+
+const LABELS: Record<string, string> = {
+  index: "Chat",
+  CrowdFund: "Squad",
+  Setting: "Settings",
+  leaderboard: "Rank",
+};
+
+export default function TabLayout() {
   return (
     <Tabs
-      screenOptions={{
-        tabBarActiveTintColor: Colors.light.primary,
-        tabBarInactiveTintColor: "#8E8E8E",
-        tabBarIconStyle: {
-          marginTop: 2,
-        },
-        tabBarItemStyle: {
-          paddingTop: 12,
-          paddingBottom: 6,
-          justifyContent: "center",
-        },
-        tabBarStyle: {
-   
-          height: Platform.OS === "ios" ? 84 : 76,
-          borderRadius: 28,
-          backgroundColor: Colors.light.white,
-          borderTopWidth: 0,
-          shadowColor: Colors.light.baseblack,
-          shadowOpacity: 0.08,
-          shadowRadius: 20,
-          shadowOffset: { width: 0, height: 8 },
-          elevation: 15,
-        },
-        tabBarLabelStyle: {
-          fontSize: 11,
-          fontFamily: "OpenSans-Bold",
-          marginTop: 4,
-        },
-        headerShown: false,
-      }}
+      screenOptions={{ headerShown: false }}
+      tabBar={(props) => <CustomTabBar {...props} />}
     >
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: "Home",
-          tabBarIcon: ({ color, focused }) => (
-            <View style={[styles.tabIcon, focused && styles.tabIconActive]}>
-              <HomeIcon fill={color} />
-            </View>
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="CrowdFund"
-        options={{
-          title: "Crowd Fund",
-          tabBarIcon: ({ color, focused }) => (
-            <View style={[styles.tabIcon, focused && styles.tabIconActive]}>
-              <CrowdFundIcon fill={color} />
-            </View>
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="Chat"
-        options={{
-          title: "Chat",
-          tabBarIcon: ({ color, focused }) => (
-            <View style={[styles.tabIcon, focused && styles.tabIconActive]}>
-              <ChatIcon fill={color} />
-            </View>
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="Setting"
-        options={{
-          title: "Setting",
-          tabBarIcon: ({ color, focused }) => (
-            <View style={[styles.tabIcon, focused && styles.tabIconActive]}>
-              <SettingsIcon fill={color} />
-            </View>
-          ),
-        }}
-      />
+      <Tabs.Screen name="index" />
+      <Tabs.Screen name="CrowdFund" />
+      <Tabs.Screen name="Setting" />
+      <Tabs.Screen name="leaderboard" />
     </Tabs>
   );
 }
 
+function CustomTabBar({ state, navigation }: BottomTabBarProps) {
+  const insets = useSafeAreaInsets();
+
+  return (
+    <View style={[styles.bar, { bottom: insets.bottom - 5}]}>
+      {state.routes.map((route, index) => {
+        const focused = state.index === index;
+        const iconRenderer = ICONS[route.name];
+        const label = LABELS[route.name] ?? route.name;
+
+        const onPress = () => {
+          const event = navigation.emit({
+            type: "tabPress",
+            target: route.key,
+            canPreventDefault: true,
+          });
+          if (!focused && !event.defaultPrevented) {
+            navigation.navigate(route.name);
+          }
+        };
+
+        return (
+          <View key={route.key} style={styles.cell}>
+            <Pressable onPress={onPress} hitSlop={10}>
+              <AnimatedPill focused={focused} label={label}>
+                {iconRenderer?.(focused ? SFColors.white : SFColors.textMuted)}
+              </AnimatedPill>
+            </Pressable>
+          </View>
+        );
+      })}
+    </View>
+  );
+}
+
+function AnimatedPill({
+  focused,
+  label,
+  children,
+}: {
+  focused: boolean;
+  label: string;
+  children: React.ReactNode;
+}) {
+  const widthAnim = useRef(new Animated.Value(focused ? 78 : 44)).current;
+  const labelOpacity = useRef(new Animated.Value(focused ? 1 : 0)).current;
+
+  useEffect(() => {
+    Animated.parallel([
+      Animated.spring(widthAnim, {
+        toValue: focused ? 78 : 44,
+        useNativeDriver: false,
+        friction: 8,
+      }),
+      Animated.timing(labelOpacity, {
+        toValue: focused ? 1 : 0,
+        duration: 180,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, [focused]);
+
+  return (
+    <Animated.View
+      style={[
+        styles.pill,
+        { width: widthAnim, backgroundColor: focused ? ACTIVE_COLOR : "transparent" },
+      ]}
+    >
+      <View style={styles.iconBox}>{children}</View>
+      {focused && (
+        <Animated.Text
+          numberOfLines={1}
+          style={[styles.label, { opacity: labelOpacity }]}
+        >
+          {label}
+        </Animated.Text>
+      )}
+    </Animated.View>
+  );
+}
+
 const styles = StyleSheet.create({
-  tabIcon: {
-    width: 44,
-    height: 44,
+  bar: {
+    position: "absolute",
+    left: 18,
+    right: 18,
+    height: 68,
+    borderRadius: 32,
+    backgroundColor: SFColors.white,
+    borderRightColor: SFColors.purple200,
+    borderWidth: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    shadowColor: SFColors.purple900,
+    shadowOpacity: 0.18,
+    shadowRadius: 25,
+    shadowOffset: { width: 0, height: 12 },
+    elevation: 20,
+    paddingHorizontal: 8,
+   
+  },
+  cell: {
+    flex: 1,
+    height: "100%",
     alignItems: "center",
     justifyContent: "center",
-    borderRadius: 16,
   },
-  tabIconActive: {
-    backgroundColor: "rgba(30, 120, 255, 0.12)",
+  pill: {
+    height: 44,
+    borderRadius: 22,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    overflow: "hidden",
+    maxWidth: 90,
+  },
+  iconBox: {
+    width: ICON_SIZE,
+    height: ICON_SIZE,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  label: {
+    color: SFColors.white,
+    fontSize: 12,
+    fontWeight: "700",
+    marginLeft: 4,
   },
 });

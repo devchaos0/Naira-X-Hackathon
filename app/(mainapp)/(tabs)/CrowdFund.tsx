@@ -1,4 +1,3 @@
-// app/(tabs)/CrowdFund.tsx (Main Screen)
 import { CreateCrowdFundForm, CrowdFundItem } from "@/api/type";
 import CustomText from "@/app/shared/text/CustomText";
 import { Colors } from "@/constants/Colors";
@@ -12,7 +11,7 @@ import CrowdFundCard from "../component/crowdfund/CrowdFundCard";
 import CrowdFundTabs from "../component/crowdfund/CrowdFundTabs";
 import FloatingActionButton from "../component/crowdfund/FloatingActionButton";
 
-// Mock data - In real app, this would come from a backend
+
 const MOCK_CROWDFUNDS: CrowdFundItem[] = [
   {
     id: "1",
@@ -95,7 +94,7 @@ export default function CrowdFund() {
       raisedAmount: 0,
       code: generateCode(),
       createdAt: new Date().toISOString().split("T")[0],
-      creatorId: "user1", // In real app, this would be the current user
+      creatorId: "user1", 
     };
 
     setCrowdfunds([newCrowdfund, ...crowdfunds]);
@@ -138,7 +137,7 @@ export default function CrowdFund() {
     }
   };
 
-  // Filter crowdfunds based on active tab
+
   const myCrowdfunds = crowdfunds.filter((item) => item.creatorId === "user1");
   const allCrowdfunds = crowdfunds;
   const displayedCrowdfunds = activeTab === "my" ? myCrowdfunds : allCrowdfunds;
