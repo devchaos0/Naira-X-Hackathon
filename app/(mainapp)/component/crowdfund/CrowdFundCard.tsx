@@ -1,7 +1,13 @@
 import { CrowdFundItem } from "@/api/type";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useEffect, useRef } from "react";
-import { Animated, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import {
+  Animated,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
 const palette = {
   ink: "#171233",
@@ -40,7 +46,11 @@ const CrowdFundCard: React.FC<CrowdFundCardProps> = ({ item, onPress }) => {
   }, [progress]);
 
   return (
-    <TouchableOpacity activeOpacity={0.85} onPress={() => onPress(item)} style={styles.card}>
+    <TouchableOpacity
+      activeOpacity={0.85}
+      onPress={() => onPress(item)}
+      style={styles.card}
+    >
       {/* HEADER */}
       <View style={styles.header}>
         <View style={styles.iconBox}>
@@ -59,7 +69,9 @@ const CrowdFundCard: React.FC<CrowdFundCardProps> = ({ item, onPress }) => {
                 size={11}
                 color={palette.indigo}
               />
-              <Text style={styles.badgeText}>{item.code ? "Private" : "Public"}</Text>
+              <Text style={styles.badgeText}>
+                {item.code ? "Private" : "Public"}
+              </Text>
             </View>
 
             {item.code && (
@@ -84,7 +96,9 @@ const CrowdFundCard: React.FC<CrowdFundCardProps> = ({ item, onPress }) => {
           <View>
             <Text style={styles.small}>Raised</Text>
             <Text style={styles.raised}>{formatNaira(item.raisedAmount)}</Text>
-            <Text style={styles.target}>of {formatNaira(item.targetAmount)} target</Text>
+            <Text style={styles.target}>
+              of {formatNaira(item.targetAmount)} target
+            </Text>
           </View>
 
           <View style={styles.percentPill}>

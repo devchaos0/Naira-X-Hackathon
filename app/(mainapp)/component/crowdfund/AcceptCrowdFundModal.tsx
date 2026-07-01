@@ -43,7 +43,12 @@ const AcceptCrowdFundModal: React.FC<AcceptCrowdFundModalProps> = ({
   const canSubmit = code.trim().length > 0;
 
   return (
-    <Modal transparent visible={visible} animationType="slide" onRequestClose={onClose}>
+    <Modal
+      transparent
+      visible={visible}
+      animationType="slide"
+      onRequestClose={onClose}
+    >
       <View style={styles.overlay}>
         <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : undefined}

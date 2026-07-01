@@ -13,7 +13,9 @@ const ICON_SIZE = 20;
 const ACTIVE_COLOR = SFColors.purple600;
 
 const ICONS: Record<string, (color: string) => React.ReactNode> = {
-  index: (color) => <ChatIcon width={ICON_SIZE} height={ICON_SIZE} fill={color} />,
+  index: (color) => (
+    <ChatIcon width={ICON_SIZE} height={ICON_SIZE} fill={color} />
+  ),
   CrowdFund: (color) => (
     <CrowdFundIcon width={ICON_SIZE} height={ICON_SIZE} fill={color} />
   ),
@@ -50,7 +52,7 @@ function CustomTabBar({ state, navigation }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
 
   return (
-    <View style={[styles.bar, { bottom: insets.bottom - 5}]}>
+    <View style={[styles.bar, { bottom: insets.bottom - 5 }]}>
       {state.routes.map((route, index) => {
         const focused = state.index === index;
         const iconRenderer = ICONS[route.name];
@@ -112,7 +114,10 @@ function AnimatedPill({
     <Animated.View
       style={[
         styles.pill,
-        { width: widthAnim, backgroundColor: focused ? ACTIVE_COLOR : "transparent" },
+        {
+          width: widthAnim,
+          backgroundColor: focused ? ACTIVE_COLOR : "transparent",
+        },
       ]}
     >
       <View style={styles.iconBox}>{children}</View>
@@ -146,7 +151,6 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 12 },
     elevation: 20,
     paddingHorizontal: 8,
-   
   },
   cell: {
     flex: 1,

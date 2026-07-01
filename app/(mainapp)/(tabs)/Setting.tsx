@@ -32,7 +32,6 @@ const palette = {
 const FONT_DISPLAY = "Fraunces_600SemiBold";
 const FONT_NUMERIC = "SpaceGrotesk_600SemiBold";
 
-
 const RING_SIZE = 62;
 const RING_STROKE = 6;
 const RING_RADIUS = (RING_SIZE - RING_STROKE) / 2;
@@ -87,7 +86,6 @@ function XPRing({ progress }: { progress: number }) {
   );
 }
 
-
 interface TransactionItemProps {
   title: string;
   category: string;
@@ -97,7 +95,14 @@ interface TransactionItemProps {
   icon: keyof typeof Ionicons.glyphMap;
 }
 
-function TransactionItem({ title, category, amount, time, positive, icon }: TransactionItemProps) {
+function TransactionItem({
+  title,
+  category,
+  amount,
+  time,
+  positive,
+  icon,
+}: TransactionItemProps) {
   const tint = positive ? palette.success : palette.danger;
   const tintBg = positive ? palette.successBg : palette.dangerBg;
 
@@ -121,7 +126,6 @@ function TransactionItem({ title, category, amount, time, positive, icon }: Tran
     </View>
   );
 }
-
 
 const Setting = () => {
   const [profileImage] = useState("https://i.pravatar.cc/300");
@@ -157,12 +161,16 @@ const Setting = () => {
 
           <View style={styles.xpInfo}>
             <View style={styles.xpTopLine}>
-              <Text style={styles.xpValue}>{xp.toLocaleString("en-NG")} XP</Text>
+              <Text style={styles.xpValue}>
+                {xp.toLocaleString("en-NG")} XP
+              </Text>
               <View style={styles.levelChip}>
                 <Text style={styles.levelChipText}>Odogwu</Text>
               </View>
             </View>
-            <Text style={styles.xpNext}>{xpToNext.toLocaleString("en-NG")} XP to Legend</Text>
+            <Text style={styles.xpNext}>
+              {xpToNext.toLocaleString("en-NG")} XP to Legend
+            </Text>
           </View>
         </View>
       </View>
@@ -170,7 +178,9 @@ const Setting = () => {
       {/* MONEY SUMMARY */}
       <View style={styles.moneyRow}>
         <View style={styles.moneyCard}>
-          <View style={[styles.moneyIcon, { backgroundColor: palette.successBg }]}>
+          <View
+            style={[styles.moneyIcon, { backgroundColor: palette.successBg }]}
+          >
             <Ionicons name="arrow-down" size={18} color={palette.success} />
           </View>
           <Text style={styles.moneyLabel}>Total credit</Text>
@@ -178,7 +188,9 @@ const Setting = () => {
         </View>
 
         <View style={styles.moneyCard}>
-          <View style={[styles.moneyIcon, { backgroundColor: palette.dangerBg }]}>
+          <View
+            style={[styles.moneyIcon, { backgroundColor: palette.dangerBg }]}
+          >
             <Ionicons name="arrow-up" size={18} color={palette.danger} />
           </View>
           <Text style={styles.moneyLabel}>Total debit</Text>
@@ -276,7 +288,11 @@ const styles = StyleSheet.create({
   },
   ringCenter: { position: "absolute" },
   xpInfo: { flex: 1 },
-  xpTopLine: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
+  xpTopLine: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
   xpValue: { fontFamily: FONT_NUMERIC, fontSize: 16, color: palette.bg },
   levelChip: {
     backgroundColor: "rgba(228,169,59,0.18)",

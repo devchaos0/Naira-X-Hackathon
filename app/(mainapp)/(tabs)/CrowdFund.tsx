@@ -11,7 +11,6 @@ import CrowdFundCard from "../component/crowdfund/CrowdFundCard";
 import CrowdFundTabs from "../component/crowdfund/CrowdFundTabs";
 import FloatingActionButton from "../component/crowdfund/FloatingActionButton";
 
-
 const MOCK_CROWDFUNDS: CrowdFundItem[] = [
   {
     id: "1",
@@ -94,7 +93,7 @@ export default function CrowdFund() {
       raisedAmount: 0,
       code: generateCode(),
       createdAt: new Date().toISOString().split("T")[0],
-      creatorId: "user1", 
+      creatorId: "user1",
     };
 
     setCrowdfunds([newCrowdfund, ...crowdfunds]);
@@ -136,7 +135,6 @@ export default function CrowdFund() {
       Alert.alert("Error", "Invalid crowd fund code. Please try again.");
     }
   };
-
 
   const myCrowdfunds = crowdfunds.filter((item) => item.creatorId === "user1");
   const allCrowdfunds = crowdfunds;

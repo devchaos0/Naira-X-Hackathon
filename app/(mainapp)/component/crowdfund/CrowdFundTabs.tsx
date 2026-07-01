@@ -1,6 +1,12 @@
 import { Ionicons } from "@expo/vector-icons";
 import React, { useEffect, useRef } from "react";
-import { Animated, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import {
+  Animated,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
 const palette = {
   ink: "#171233",
@@ -28,7 +34,7 @@ const CrowdFundTabs: React.FC<CrowdFundTabsProps> = ({
   useEffect(() => {
     Animated.spring(slide, {
       toValue: activeTab === "my" ? 0 : 1,
-      useNativeDriver: false, 
+      useNativeDriver: false,
       damping: 18,
       stiffness: 180,
     }).start();
@@ -54,11 +60,23 @@ const CrowdFundTabs: React.FC<CrowdFundTabsProps> = ({
             size={16}
             color={activeTab === "my" ? palette.bg : palette.muted}
           />
-          <Text style={[styles.label, activeTab === "my" && styles.labelActive]}>
+          <Text
+            style={[styles.label, activeTab === "my" && styles.labelActive]}
+          >
             My Squads
           </Text>
-          <View style={[styles.countChip, activeTab === "my" && styles.countChipActive]}>
-            <Text style={[styles.countText, activeTab === "my" && styles.countTextActive]}>
+          <View
+            style={[
+              styles.countChip,
+              activeTab === "my" && styles.countChipActive,
+            ]}
+          >
+            <Text
+              style={[
+                styles.countText,
+                activeTab === "my" && styles.countTextActive,
+              ]}
+            >
               {myCount}
             </Text>
           </View>
@@ -74,11 +92,23 @@ const CrowdFundTabs: React.FC<CrowdFundTabsProps> = ({
             size={16}
             color={activeTab === "all" ? palette.bg : palette.muted}
           />
-          <Text style={[styles.label, activeTab === "all" && styles.labelActive]}>
+          <Text
+            style={[styles.label, activeTab === "all" && styles.labelActive]}
+          >
             Explore
           </Text>
-          <View style={[styles.countChip, activeTab === "all" && styles.countChipActive]}>
-            <Text style={[styles.countText, activeTab === "all" && styles.countTextActive]}>
+          <View
+            style={[
+              styles.countChip,
+              activeTab === "all" && styles.countChipActive,
+            ]}
+          >
+            <Text
+              style={[
+                styles.countText,
+                activeTab === "all" && styles.countTextActive,
+              ]}
+            >
               {allCount}
             </Text>
           </View>

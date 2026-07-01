@@ -1,5 +1,3 @@
-
-
 import { CreateCrowdFundForm } from "@/api/type";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useEffect, useRef, useState } from "react";
@@ -20,21 +18,19 @@ import Svg, { Circle } from "react-native-svg";
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
-
 const palette = {
-  ink: "#171233",       
-  indigo: "#2E2470",   
-  violet: "#6D5FE0",    
-  gold: "#E4A93B",      
+  ink: "#171233",
+  indigo: "#2E2470",
+  violet: "#6D5FE0",
+  gold: "#E4A93B",
   bg: "#FFFFFF",
-  mist: "#F1EEFB",      
+  mist: "#F1EEFB",
   hairline: "#E9E6F2",
   muted: "#8C87A3",
 } as const;
 
 const FONT_DISPLAY = "Fraunces_600SemiBold";
 const FONT_NUMERIC = "SpaceGrotesk_600SemiBold";
-
 
 interface CreateCrowdFundModalProps {
   visible: boolean;
@@ -46,9 +42,7 @@ interface CreateCrowdFundModalProps {
 
 type Visibility = "public" | "private";
 
-
 const DURATIONS = ["30 days", "60 days", "90 days", "180 days"];
-
 
 const GOAL_REFERENCE = 500_000;
 
@@ -56,9 +50,10 @@ const onlyDigits = (text: string): string => text.replace(/[^0-9]/g, "");
 
 const formatNaira = (digits: string): string => {
   if (!digits) return "";
-  return "₦" + Number(digits).toLocaleString("en-NG", { maximumFractionDigits: 0 });
+  return (
+    "₦" + Number(digits).toLocaleString("en-NG", { maximumFractionDigits: 0 })
+  );
 };
-
 
 const DIAL_SIZE = 176;
 const DIAL_STROKE = 10;
@@ -74,7 +69,7 @@ function PotDial({ amountDigits }: { amountDigits: string }) {
     Animated.timing(progressAnim, {
       toValue: targetPct,
       duration: 450,
-      useNativeDriver: false, 
+      useNativeDriver: false,
     }).start();
   }, [targetPct, progressAnim]);
 
@@ -111,11 +106,7 @@ function PotDial({ amountDigits }: { amountDigits: string }) {
       </Svg>
       <View style={styles.dialCenter} pointerEvents="none">
         <Text style={styles.dialEyebrow}>THE GOAL</Text>
-        <Text
-          style={styles.dialAmount}
-          numberOfLines={1}
-          adjustsFontSizeToFit
-        >
+        <Text style={styles.dialAmount} numberOfLines={1} adjustsFontSizeToFit>
           {amount > 0 ? formatNaira(amountDigits) : "₦0"}
         </Text>
       </View>
@@ -134,7 +125,12 @@ interface TextFieldProps {
   multiline?: boolean;
 }
 
-function TextField({ placeholder, value, onChangeText, multiline }: TextFieldProps) {
+function TextField({
+  placeholder,
+  value,
+  onChangeText,
+  multiline,
+}: TextFieldProps) {
   return (
     <TextInput
       style={[styles.field, multiline && styles.fieldMultiline]}
@@ -147,7 +143,6 @@ function TextField({ placeholder, value, onChangeText, multiline }: TextFieldPro
     />
   );
 }
-
 
 const CreateCrowdFundModal: React.FC<CreateCrowdFundModalProps> = ({
   visible,
@@ -174,7 +169,8 @@ const CreateCrowdFundModal: React.FC<CreateCrowdFundModalProps> = ({
     setForm({ ...form, amount: onlyDigits(text) });
   };
 
-  const canSubmit = form.name.trim().length > 0 && form.amount.trim().length > 0;
+  const canSubmit =
+    form.name.trim().length > 0 && form.amount.trim().length > 0;
 
   return (
     <Modal
@@ -203,14 +199,14 @@ const CreateCrowdFundModal: React.FC<CreateCrowdFundModalProps> = ({
             contentContainerStyle={styles.body}
             keyboardShouldPersistTaps="handled"
           >
-         
             <View style={styles.hero}>
               <PotDial amountDigits={form.amount} />
               <Text style={styles.headline}>Start a squad</Text>
-              <Text style={styles.subhead}>Save toward one goal, together.</Text>
+              <Text style={styles.subhead}>
+                Save toward one goal, together.
+              </Text>
             </View>
 
-          
             <View style={styles.section}>
               <FieldLabel>THE POT</FieldLabel>
               <TextField
@@ -227,7 +223,6 @@ const CreateCrowdFundModal: React.FC<CreateCrowdFundModalProps> = ({
               />
             </View>
 
-           
             <View style={styles.section}>
               <FieldLabel>THE CLOCK</FieldLabel>
               <View style={styles.chipRow}>
@@ -239,7 +234,12 @@ const CreateCrowdFundModal: React.FC<CreateCrowdFundModalProps> = ({
                       onPress={() => handleSelectPresetDuration(d)}
                       style={[styles.chip, active && styles.chipActive]}
                     >
-                      <Text style={[styles.chipText, active && styles.chipTextActive]}>
+                      <Text
+                        style={[
+                          styles.chipText,
+                          active && styles.chipTextActive,
+                        ]}
+                      >
                         {d.replace(" days", "d")}
                       </Text>
                     </TouchableOpacity>
@@ -249,7 +249,12 @@ const CreateCrowdFundModal: React.FC<CreateCrowdFundModalProps> = ({
                   onPress={handleSelectCustomDuration}
                   style={[styles.chip, useCustomDuration && styles.chipActive]}
                 >
-                  <Text style={[styles.chipText, useCustomDuration && styles.chipTextActive]}>
+                  <Text
+                    style={[
+                      styles.chipText,
+                      useCustomDuration && styles.chipTextActive,
+                    ]}
+                  >
                     Custom
                   </Text>
                 </TouchableOpacity>
@@ -260,13 +265,14 @@ const CreateCrowdFundModal: React.FC<CreateCrowdFundModalProps> = ({
                   <TextField
                     placeholder="e.g. 45 days"
                     value={form.duration}
-                    onChangeText={(text) => setForm({ ...form, duration: text })}
+                    onChangeText={(text) =>
+                      setForm({ ...form, duration: text })
+                    }
                   />
                 </>
               )}
             </View>
 
-           
             <View style={styles.section}>
               <FieldLabel>THE GOAL</FieldLabel>
               <View style={styles.amountField}>
@@ -276,7 +282,11 @@ const CreateCrowdFundModal: React.FC<CreateCrowdFundModalProps> = ({
                   placeholder="0"
                   placeholderTextColor={palette.muted}
                   keyboardType="numeric"
-                  value={form.amount ? Number(form.amount).toLocaleString("en-NG") : ""}
+                  value={
+                    form.amount
+                      ? Number(form.amount).toLocaleString("en-NG")
+                      : ""
+                  }
                   onChangeText={handleAmountChange}
                 />
               </View>
@@ -287,12 +297,17 @@ const CreateCrowdFundModal: React.FC<CreateCrowdFundModalProps> = ({
               <View style={styles.segment}>
                 <TouchableOpacity
                   onPress={() => setVisibility("public")}
-                  style={[styles.segmentOption, visibility === "public" && styles.segmentActive]}
+                  style={[
+                    styles.segmentOption,
+                    visibility === "public" && styles.segmentActive,
+                  ]}
                 >
                   <Ionicons
                     name="globe-outline"
                     size={16}
-                    color={visibility === "public" ? palette.bg : palette.indigo}
+                    color={
+                      visibility === "public" ? palette.bg : palette.indigo
+                    }
                   />
                   <View>
                     <Text
@@ -308,12 +323,17 @@ const CreateCrowdFundModal: React.FC<CreateCrowdFundModalProps> = ({
 
                 <TouchableOpacity
                   onPress={() => setVisibility("private")}
-                  style={[styles.segmentOption, visibility === "private" && styles.segmentActive]}
+                  style={[
+                    styles.segmentOption,
+                    visibility === "private" && styles.segmentActive,
+                  ]}
                 >
                   <Ionicons
                     name="lock-closed-outline"
                     size={16}
-                    color={visibility === "private" ? palette.bg : palette.indigo}
+                    color={
+                      visibility === "private" ? palette.bg : palette.indigo
+                    }
                   />
                   <Text
                     style={[
