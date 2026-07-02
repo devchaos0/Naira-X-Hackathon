@@ -1,19 +1,8 @@
-import { Feather } from "@expo/vector-icons";
-import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
+import { Feather, Ionicons } from "@expo/vector-icons";
+import { router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import React, { useCallback, useRef, useState } from "react";
-import {
-  FlatList,
-  KeyboardAvoidingView,
-  ListRenderItemInfo,
-  Platform,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import React, { useState } from "react";
+import { Pressable, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 const colors = {
   purple900: "#26215C",
@@ -36,6 +25,22 @@ const colors = {
   white: "#FFFFFF",
 } as const;
 
+const palette = {
+  ink: "#171233",
+  indigo: "#2E2470",
+  gold: "#E4A93B",
+  goldLight: "#FBEED2",
+  bg: "#FFFFFF",
+  surface: "#F8F7FC",
+  mist: "#F1EEFB",
+  hairline: "#E9E6F2",
+  muted: "#8C87A3",
+  success: "#1F9254",
+  successBg: "#E4F5EA",
+  danger: "#D8384B",
+  dangerBg: "#FBE7EA",
+} as const;
+
 interface Account {
   initials: string;
   greeting: string;
@@ -46,43 +51,6 @@ interface Account {
   tier: string;
   points: number;
 }
-
-interface TransferDetails {
-  to: string;
-  bank: string;
-  amount: number;
-}
-
-type ConfirmOutcome = "confirmed" | "cancelled";
-
-interface DateMessage {
-  id: string;
-  type: "date";
-  text: string;
-}
-
-interface BotMessage {
-  id: string;
-  type: "bot";
-  text: string;
-}
-
-interface UserMessage {
-  id: string;
-  type: "user";
-  text: string;
-}
-
-interface ConfirmMessage {
-  id: string;
-  type: "confirm";
-  text: string;
-  details: TransferDetails;
-  resolved: boolean;
-  outcome?: ConfirmOutcome;
-}
-
-type ChatMessage = DateMessage | BotMessage | UserMessage | ConfirmMessage;
 
 const ACCOUNT: Account = {
   initials: "OO",
@@ -95,39 +63,30 @@ const ACCOUNT: Account = {
   points: 1240,
 };
 
-const initialMessages: ChatMessage[] = [
-  { id: "d1", type: "date", text: "Today" },
-  {
-    id: "m1",
-    type: "bot",
-    text: 'Hey Olamide — try "send 5k to Femi" or "or perform any transaction" and I\'ll handle it.',
-  },
-  { id: "m2", type: "user", text: "send 15,000 to Amaka, GTBank" },
-  {
-    id: "m3",
-    type: "confirm",
-    text: "Confirm this transfer",
-    details: {
-      to: "Amaka Nwosu",
-      bank: "GTBank · 0089213456",
-      amount: 15000,
-    },
-    resolved: false,
-  },
-];
-
-const formatMoney = (value: number): string =>
-  "₦" + Number(value).toLocaleString("en-NG", { maximumFractionDigits: 0 });
-
-const formatPoints = (value: number): string =>
-  Number(value).toLocaleString("en-NG");
-
 interface ChatHeaderProps {
   account: Account;
   balanceHidden: boolean;
   onToggleBalance: () => void;
   topInset: number;
 }
+
+interface TransactionItemProps {
+  title: string;
+  category: string;
+  amount: string;
+  time: string;
+  positive?: boolean;
+  icon: keyof typeof Ionicons.glyphMap;
+}
+
+const formatPoints = (value: number): string =>
+  Number(value).toLocaleString("en-NG");
+
+const formatMoney = (value: number): string =>
+  "₦" + Number(value).toLocaleString("en-NG", { maximumFractionDigits: 0 });
+
+const FONT_NUMERIC = "SpaceGrotesk_600SemiBold";
+``;
 
 function ChatHeader({
   account,
@@ -188,180 +147,64 @@ function ChatHeader({
   );
 }
 
-function DateSeparator({ text }: { text: string }) {
-  return <Text style={styles.dateSeparator}>{text.toUpperCase()}</Text>;
-}
-
-function BotBubble({ text }: { text: string }) {
-  return (
-    <View style={[styles.bubble, styles.botBubble]}>
-      <Text style={styles.botText}>{text}</Text>
-    </View>
-  );
-}
-
-function UserBubble({ text }: { text: string }) {
-  return (
-    <View style={[styles.bubble, styles.userBubble]}>
-      <Text style={styles.userText}>{text}</Text>
-    </View>
-  );
-}
-
-function SuccessBubble({ text }: { text: string }) {
-  return (
-    <View style={[styles.bubble, styles.successBubble]}>
-      <Feather name="check" size={14} color={colors.teal100} />
-      <Text style={styles.successText}>{text}</Text>
-    </View>
-  );
-}
-
-interface ConfirmCardProps {
-  message: ConfirmMessage;
-  onConfirm: (id: string) => void;
-  onCancel: (id: string) => void;
-}
-
-function ConfirmCard({ message, onConfirm, onCancel }: ConfirmCardProps) {
-  const { details, resolved, outcome, id, text } = message;
-
-  if (resolved) {
-    return (
-      <SuccessBubble
-        text={
-          outcome === "confirmed"
-            ? `Sent. ${formatMoney(details.amount)} to ${details.to}.`
-            : "Transfer cancelled."
-        }
-      />
-    );
-  }
+function TransactionItem({
+  title,
+  category,
+  amount,
+  time,
+  positive,
+  icon,
+}: TransactionItemProps) {
+  const tint = positive ? palette.success : palette.danger;
+  const tintBg = positive ? palette.successBg : palette.dangerBg;
 
   return (
-    <View style={[styles.bubble, styles.botBubble, styles.confirmBubble]}>
-      <Text style={styles.confirmTitle}>{text}</Text>
-      <View style={styles.confirmDetailsBox}>
-        <View style={styles.confirmRow}>
-          <Text style={styles.confirmLabel}>To</Text>
-          <Text style={styles.confirmValue}>{details.to}</Text>
-        </View>
-        <View style={styles.confirmRow}>
-          <Text style={styles.confirmLabel}>Bank</Text>
-          <Text style={styles.confirmValue}>{details.bank}</Text>
-        </View>
-        <View style={[styles.confirmRow, styles.confirmAmountRow]}>
-          <Text style={styles.confirmLabel}>Amount</Text>
-          <Text style={styles.confirmAmountValue}>
-            {formatMoney(details.amount)}
-          </Text>
+    <View style={styles.activity}>
+      <View style={[styles.activityIcon, { backgroundColor: tintBg }]}>
+        <Ionicons name={icon} size={20} color={tint} />
+      </View>
+
+      <View style={{ flex: 1 }}>
+        <Text style={styles.activityTitle}>{title}</Text>
+        <View style={styles.tag}>
+          <Text style={styles.tagText}>{category}</Text>
         </View>
       </View>
-      <View style={styles.confirmActions}>
-        <TouchableOpacity
-          style={styles.cancelButton}
-          onPress={() => onCancel(id)}
-        >
-          <Text style={styles.cancelButtonText}>Cancel</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.confirmButton}
-          onPress={() => onConfirm(id)}
-        >
-          <Text style={styles.confirmButtonText}>Confirm</Text>
-        </TouchableOpacity>
+
+      <View style={styles.amountBox}>
+        <Text style={[styles.activityAmount, { color: tint }]}>{amount}</Text>
+        <Text style={styles.activityTime}>{time}</Text>
       </View>
     </View>
   );
 }
 
-interface MessageRowProps {
-  item: ChatMessage;
-  onConfirm: (id: string) => void;
-  onCancel: (id: string) => void;
-}
+function MoneySummary() {
+  return (
+    <View style={styles.moneyRow}>
+      <View style={styles.moneyCard}>
+        <View
+          style={[styles.moneyIcon, { backgroundColor: palette.successBg }]}
+        >
+          <Ionicons name="arrow-down" size={18} color={palette.success} />
+        </View>
+        <Text style={styles.moneyLabel}>Total credit</Text>
+        <Text style={styles.moneyValue}>₦450,000</Text>
+      </View>
 
-function MessageRow({ item, onConfirm, onCancel }: MessageRowProps) {
-  switch (item.type) {
-    case "date":
-      return <DateSeparator text={item.text} />;
-    case "bot":
-      return <BotBubble text={item.text} />;
-    case "user":
-      return <UserBubble text={item.text} />;
-    case "confirm":
-      return (
-        <ConfirmCard message={item} onConfirm={onConfirm} onCancel={onCancel} />
-      );
-    default:
-      return null;
-  }
+      <View style={styles.moneyCard}>
+        <View style={[styles.moneyIcon, { backgroundColor: palette.dangerBg }]}>
+          <Ionicons name="arrow-up" size={18} color={palette.danger} />
+        </View>
+        <Text style={styles.moneyLabel}>Total debit</Text>
+        <Text style={styles.moneyValue}>₦120,500</Text>
+      </View>
+    </View>
+  );
 }
 
 export default function Chat() {
-  const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
-  const [input, setInput] = useState("");
   const [balanceHidden, setBalanceHidden] = useState(false);
-  const listRef = useRef<FlatList<ChatMessage>>(null);
-
-  const insets = useSafeAreaInsets();
-
-  const tabBarHeight = useBottomTabBarHeight();
-
-  const scrollToEnd = useCallback(() => {
-    requestAnimationFrame(() =>
-      listRef.current?.scrollToEnd({ animated: true })
-    );
-  }, []);
-
-  const handleConfirm = useCallback(
-    (id: string) => {
-      setMessages((prev) =>
-        prev.map((m) =>
-          m.id === id ? { ...m, resolved: true, outcome: "confirmed" } : m
-        )
-      );
-      scrollToEnd();
-    },
-    [scrollToEnd]
-  );
-
-  const handleCancel = useCallback(
-    (id: string) => {
-      setMessages((prev) =>
-        prev.map((m) =>
-          m.id === id ? { ...m, resolved: true, outcome: "cancelled" } : m
-        )
-      );
-      scrollToEnd();
-    },
-    [scrollToEnd]
-  );
-
-  const handleSend = useCallback(() => {
-    const trimmed = input.trim();
-    if (!trimmed) return;
-
-    const userMessage: UserMessage = {
-      id: `u-${Date.now()}`,
-      type: "user",
-      text: trimmed,
-    };
-    setMessages((prev) => [...prev, userMessage]);
-    setInput("");
-    scrollToEnd();
-  }, [input, scrollToEnd]);
-
-  const renderItem = useCallback(
-    ({ item }: ListRenderItemInfo<ChatMessage>) => (
-      <MessageRow
-        item={item}
-        onConfirm={handleConfirm}
-        onCancel={handleCancel}
-      />
-    ),
-    [handleConfirm, handleCancel]
-  );
 
   return (
     <View style={styles.screen}>
@@ -372,51 +215,73 @@ export default function Chat() {
         balanceHidden={balanceHidden}
         onToggleBalance={() => setBalanceHidden((v) => !v)}
       />
-
-      <KeyboardAvoidingView
-        style={styles.flex}
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-        keyboardVerticalOffset={Platform.OS === "ios" ? 8 : 0}
-      >
-        <FlatList
-          ref={listRef}
-          data={messages}
-          keyExtractor={(item) => item.id}
-          contentContainerStyle={styles.listContent}
-          renderItem={renderItem}
-          onContentSizeChange={scrollToEnd}
-        />
-
-        <View style={[styles.inputBar, { marginBottom: tabBarHeight + 12 }]}>
-          <TextInput
-            style={styles.input}
-            value={input}
-            onChangeText={setInput}
-            placeholder="Send money, pay a bill, check balance..."
-            placeholderTextColor={colors.textMuted}
-            returnKeyType="send"
-            onSubmitEditing={handleSend}
-          />
-          <TouchableOpacity
-            style={[
-              styles.sendButton,
-              !input.trim() && styles.sendButtonDisabled,
-            ]}
-            onPress={handleSend}
-            disabled={!input.trim()}
-            accessibilityLabel="Send message"
-          >
-            <Feather name="arrow-up" size={18} color={colors.white} />
-          </TouchableOpacity>
+      <View style={{ flex: 1, paddingHorizontal: 18, paddingTop: 20 }}>
+        <View style={styles.quickActionRow}>
+          <Pressable onPress={() => router.navigate("/chat")} style={styles.actionCard}>
+            <View
+              style={[
+                styles.actionIcon,
+                { backgroundColor: palette.goldLight },
+              ]}
+            >
+              <Feather name="send" size={18} color={palette.gold} />
+            </View>
+            <Text style={styles.actionTitle}>Chat transfer</Text>
+            <Text style={styles.actionSubtitle}>Send money through chat</Text>
+          </Pressable>
+          <Pressable onPress={() => router.navigate("/fundme")} style={styles.actionCard}>
+            <View
+              style={[styles.actionIcon, { backgroundColor: colors.purple100 }]}
+            >
+              <Ionicons name="cash" size={18} color={colors.purple700} />
+            </View>
+            <Text style={styles.actionTitle}>Fund me</Text>
+            <Text style={styles.actionSubtitle}>View bank & account info</Text>
+          </Pressable>
         </View>
-      </KeyboardAvoidingView>
+        {/* <MoneySummary /> */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Transaction history</Text>
+          <View style={styles.historyCard}>
+            <TransactionItem
+              title="Wallet funding"
+              category="Deposit"
+              amount="+ ₦50,000"
+              time="2m ago"
+              positive
+              icon="wallet"
+            />
+            <TransactionItem
+              title="Sent to John"
+              category="Transfer"
+              amount="- ₦15,000"
+              time="1h ago"
+              icon="paper-plane"
+            />
+            <TransactionItem
+              title="Netflix"
+              category="Subscription"
+              amount="- ₦4,500"
+              time="Yesterday"
+              icon="play"
+            />
+            <TransactionItem
+              title="Cashback reward"
+              category="Reward"
+              amount="+ ₦2,000"
+              time="3 days ago"
+              positive
+              icon="gift"
+            />
+          </View>
+        </View>
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.bg },
-  flex: { flex: 1 },
 
   header: {
     backgroundColor: colors.purple900,
@@ -452,6 +317,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
   },
   tierChipText: { color: colors.gold300, fontSize: 12, fontWeight: "600" },
+
   balanceLabel: { color: colors.purple200, fontSize: 12, marginBottom: 2 },
   balanceRow: {
     flexDirection: "row",
@@ -499,123 +365,108 @@ const styles = StyleSheet.create({
   },
   pointsChipText: { color: colors.purple100, fontSize: 12, fontWeight: "600" },
 
-  // Chat list
-  listContent: { padding: 16, gap: 12 },
-  dateSeparator: {
-    alignSelf: "center",
-    fontSize: 11,
-    color: colors.textMuted,
-    letterSpacing: 0.5,
-    marginBottom: 4,
-  },
-  bubble: {
-    maxWidth: "82%",
-    borderRadius: 16,
-    paddingVertical: 11,
-    paddingHorizontal: 14,
-    marginBottom: 12,
-  },
-  botBubble: {
-    alignSelf: "flex-start",
-    backgroundColor: colors.surface,
-    borderTopLeftRadius: 4,
-  },
-  botText: { color: colors.textPrimary, fontSize: 14, lineHeight: 20 },
-  userBubble: {
-    alignSelf: "flex-end",
-    backgroundColor: colors.purple900,
-    borderTopRightRadius: 4,
-  },
-  userText: { color: colors.purple50, fontSize: 14, lineHeight: 20 },
-  successBubble: {
-    alignSelf: "flex-end",
-    backgroundColor: colors.teal800,
-    borderTopRightRadius: 4,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-  },
-  successText: { color: colors.teal100, fontSize: 14 },
-
-  // Confirm card
-  confirmBubble: { paddingVertical: 4, paddingHorizontal: 4 },
-  confirmTitle: { fontSize: 14, color: colors.textPrimary, padding: 8 },
-  confirmDetailsBox: {
-    backgroundColor: colors.bg,
-    borderRadius: 12,
-    padding: 12,
-    borderWidth: 0.5,
-    borderColor: colors.border,
-  },
-  confirmRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 8,
-  },
-  confirmLabel: { color: colors.textMuted, fontSize: 13 },
-  confirmValue: { color: colors.textPrimary, fontSize: 13, fontWeight: "600" },
-  confirmAmountRow: {
-    marginBottom: 0,
-    paddingTop: 8,
-    borderTopWidth: 0.5,
-    borderTopColor: colors.border,
-  },
-  confirmAmountValue: {
-    color: colors.textPrimary,
-    fontSize: 15,
-    fontWeight: "700",
-  },
-  confirmActions: { flexDirection: "row", gap: 8, padding: 8 },
-  cancelButton: {
+  // Money summary
+  moneyRow: { flexDirection: "row", gap: 12, marginBottom: 22 },
+  moneyCard: {
     flex: 1,
-    paddingVertical: 9,
-    borderRadius: 10,
-    borderWidth: 0.5,
-    borderColor: colors.border,
-    alignItems: "center",
+    backgroundColor: palette.bg,
+    padding: 16,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: palette.hairline,
   },
-  cancelButtonText: {
-    color: colors.textPrimary,
-    fontSize: 13,
-    fontWeight: "600",
-  },
-  confirmButton: {
-    flex: 1,
-    paddingVertical: 9,
-    borderRadius: 10,
-    backgroundColor: colors.purple900,
-    alignItems: "center",
-  },
-  confirmButtonText: {
-    color: colors.purple50,
-    fontSize: 13,
-    fontWeight: "600",
-  },
-
-  inputBar: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    backgroundColor: colors.surface,
-    borderRadius: 999,
-    paddingLeft: 16,
-    paddingRight: 6,
-    paddingVertical: 6,
-    marginHorizontal: 12,
-  },
-  input: {
-    flex: 1,
-    fontSize: 14,
-    color: colors.textPrimary,
-    paddingVertical: 8,
-  },
-  sendButton: {
+  moneyIcon: {
     width: 38,
     height: 38,
     borderRadius: 19,
-    backgroundColor: colors.purple900,
-    alignItems: "center",
     justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 12,
   },
-  sendButtonDisabled: { opacity: 0.4 },
+  moneyLabel: { color: palette.muted, fontSize: 12 },
+  quickActionRow: {
+    flexDirection: "row",
+    gap: 12,
+    marginBottom: 20,
+  },
+  actionCard: {
+    flex: 1,
+    backgroundColor: palette.bg,
+    borderRadius: 20,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: palette.hairline,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 2,
+    alignItems: "center",
+  },
+  actionIcon: {
+    width: 38,
+    height: 38,
+    borderRadius: 14,
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 12,
+  },
+  actionTitle: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: palette.ink,
+    marginBottom: 4,
+    textAlign: "center",
+  },
+  actionSubtitle: {
+    fontSize: 12,
+    color: palette.muted,
+    lineHeight: 18,
+    textAlign: "center",
+  },
+  moneyValue: {
+    fontFamily: FONT_NUMERIC,
+    fontSize: 17,
+    color: palette.ink,
+    marginTop: 4,
+  },
+
+  // Transaction history
+  section: { marginTop: 4 },
+  sectionTitle: { fontSize: 15, fontWeight: "700", color: palette.ink },
+  historyCard: {
+    backgroundColor: palette.bg,
+    borderRadius: 22,
+    padding: 8,
+    marginTop: 12,
+    borderWidth: 1,
+    borderColor: palette.hairline,
+  },
+  activity: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 10,
+    borderRadius: 16,
+  },
+  activityIcon: {
+    width: 42,
+    height: 42,
+    borderRadius: 16,
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 12,
+  },
+  activityTitle: { fontWeight: "700", color: palette.ink, fontSize: 14 },
+  tag: {
+    backgroundColor: palette.mist,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 20,
+    alignSelf: "flex-start",
+    marginTop: 5,
+  },
+  tagText: { color: palette.indigo, fontSize: 11, fontWeight: "600" },
+  amountBox: { alignItems: "flex-end" },
+  activityAmount: { fontWeight: "700", fontSize: 13 },
+  activityTime: { color: palette.muted, fontSize: 11, marginTop: 3 },
 });

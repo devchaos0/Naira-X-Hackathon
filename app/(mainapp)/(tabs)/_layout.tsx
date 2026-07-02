@@ -1,4 +1,4 @@
-import { ChatIcon } from "@/assets/svg/ChatIcon";
+import { HomeIcon } from "@/assets/svg/ChatIcon";
 import { CrowdFundIcon } from "@/assets/svg/CrowdFundIcon";
 import { SettingsIcon } from "@/assets/svg/SettingsIcon";
 import { SFColors } from "@/constants/theme";
@@ -14,7 +14,7 @@ const ACTIVE_COLOR = SFColors.purple600;
 
 const ICONS: Record<string, (color: string) => React.ReactNode> = {
   index: (color) => (
-    <ChatIcon width={ICON_SIZE} height={ICON_SIZE} fill={color} />
+    <HomeIcon width={ICON_SIZE} height={ICON_SIZE} fill={color} />
   ),
   CrowdFund: (color) => (
     <CrowdFundIcon width={ICON_SIZE} height={ICON_SIZE} fill={color} />
@@ -28,7 +28,7 @@ const ICONS: Record<string, (color: string) => React.ReactNode> = {
 };
 
 const LABELS: Record<string, string> = {
-  index: "Chat",
+  index: "Home",
   CrowdFund: "Squad",
   Setting: "Settings",
   leaderboard: "Rank",
@@ -42,8 +42,8 @@ export default function TabLayout() {
     >
       <Tabs.Screen name="index" />
       <Tabs.Screen name="CrowdFund" />
-      <Tabs.Screen name="Setting" />
       <Tabs.Screen name="leaderboard" />
+      <Tabs.Screen name="Setting" />
     </Tabs>
   );
 }

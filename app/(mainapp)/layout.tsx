@@ -36,6 +36,14 @@ const Rootlayout = () => {
         name="transfer/grouptranfer/details"
         options={{ headerShown: false }}
       />
+      <Stack.Screen
+        name="chat/index"
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="fundme/index"
+        options={{ headerShown: false }}
+      />
     </Stack>
   );
 };

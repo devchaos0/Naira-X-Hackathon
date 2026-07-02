@@ -86,49 +86,10 @@ function XPRing({ progress }: { progress: number }) {
   );
 }
 
-interface TransactionItemProps {
-  title: string;
-  category: string;
-  amount: string;
-  time: string;
-  positive?: boolean;
-  icon: keyof typeof Ionicons.glyphMap;
-}
-
-function TransactionItem({
-  title,
-  category,
-  amount,
-  time,
-  positive,
-  icon,
-}: TransactionItemProps) {
-  const tint = positive ? palette.success : palette.danger;
-  const tintBg = positive ? palette.successBg : palette.dangerBg;
-
-  return (
-    <View style={styles.activity}>
-      <View style={[styles.activityIcon, { backgroundColor: tintBg }]}>
-        <Ionicons name={icon} size={20} color={tint} />
-      </View>
-
-      <View style={{ flex: 1 }}>
-        <Text style={styles.activityTitle}>{title}</Text>
-        <View style={styles.tag}>
-          <Text style={styles.tagText}>{category}</Text>
-        </View>
-      </View>
-
-      <View style={styles.amountBox}>
-        <Text style={[styles.activityAmount, { color: tint }]}>{amount}</Text>
-        <Text style={styles.activityTime}>{time}</Text>
-      </View>
-    </View>
-  );
-}
-
 const Setting = () => {
   const [profileImage] = useState("https://i.pravatar.cc/300");
+  const [biometricEnabled, setBiometricEnabled] = useState(true);
+  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
 
   const xp = 12450;
   const xpToNext = 37550;
@@ -175,66 +136,111 @@ const Setting = () => {
         </View>
       </View>
 
-      {/* MONEY SUMMARY */}
-      <View style={styles.moneyRow}>
-        <View style={styles.moneyCard}>
-          <View
-            style={[styles.moneyIcon, { backgroundColor: palette.successBg }]}
-          >
-            <Ionicons name="arrow-down" size={18} color={palette.success} />
-          </View>
-          <Text style={styles.moneyLabel}>Total credit</Text>
-          <Text style={styles.moneyValue}>₦450,000</Text>
-        </View>
 
-        <View style={styles.moneyCard}>
-          <View
-            style={[styles.moneyIcon, { backgroundColor: palette.dangerBg }]}
-          >
-            <Ionicons name="arrow-up" size={18} color={palette.danger} />
+      <View style={styles.settingsCard}>
+        <Text style={styles.sectionTitle}>Preferences</Text>
+        <Pressable style={styles.settingsRow} onPress={() => {}}>
+          <View>
+            <Text style={styles.settingsRowText}>Manage profile</Text>
+            <Text style={styles.settingsRowSubtitle}>
+              Update name, email, and photo
+            </Text>
           </View>
-          <Text style={styles.moneyLabel}>Total debit</Text>
-          <Text style={styles.moneyValue}>₦120,500</Text>
-        </View>
+          <Ionicons name="chevron-forward" size={18} color={palette.ink} />
+        </Pressable>
+        <Pressable
+          style={styles.settingsRow}
+          onPress={() => setNotificationsEnabled((value) => !value)}
+        >
+          <View>
+            <Text style={styles.settingsRowText}>Notifications</Text>
+            <Text style={styles.settingsRowSubtitle}>
+              {notificationsEnabled ? "Enabled" : "Disabled"}
+            </Text>
+          </View>
+          <View
+            style={[
+              styles.toggle,
+              notificationsEnabled ? styles.toggleOn : styles.toggleOff,
+            ]}
+          >
+            <View
+              style={[
+                styles.toggleThumb,
+                notificationsEnabled
+                  ? styles.toggleThumbOn
+                  : styles.toggleThumbOff,
+              ]}
+            />
+          </View>
+        </Pressable>
+        <Pressable style={styles.settingsRow} onPress={() => {}}>
+          <View>
+            <Text style={styles.settingsRowText}>Help & support</Text>
+            <Text style={styles.settingsRowSubtitle}>
+              Contact support or report an issue
+            </Text>
+          </View>
+          <Ionicons name="chevron-forward" size={18} color={palette.ink} />
+        </Pressable>
       </View>
 
-      {/* TRANSACTION HISTORY */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Transaction history</Text>
-
-        <View style={styles.historyCard}>
-          <TransactionItem
-            title="Wallet funding"
-            category="Deposit"
-            amount="+ ₦50,000"
-            time="2m ago"
-            positive
-            icon="wallet"
-          />
-          <TransactionItem
-            title="Sent to John"
-            category="Transfer"
-            amount="- ₦15,000"
-            time="1h ago"
-            icon="paper-plane"
-          />
-          <TransactionItem
-            title="Netflix"
-            category="Subscription"
-            amount="- ₦4,500"
-            time="Yesterday"
-            icon="play"
-          />
-          <TransactionItem
-            title="Cashback reward"
-            category="Reward"
-            amount="+ ₦2,000"
-            time="3 days ago"
-            positive
-            icon="gift"
-          />
-        </View>
+      <View style={styles.settingsCard}>
+        <Text style={styles.sectionTitle}>Security</Text>
+        <Pressable
+          style={styles.settingsRow}
+          onPress={() => setBiometricEnabled((value) => !value)}
+        >
+          <View>
+            <Text style={styles.settingsRowText}>Biometric login</Text>
+            <Text style={styles.settingsRowSubtitle}>
+              Touch ID / Face ID for quick access
+            </Text>
+          </View>
+          <View
+            style={[
+              styles.toggle,
+              biometricEnabled ? styles.toggleOn : styles.toggleOff,
+            ]}
+          >
+            <View
+              style={[
+                styles.toggleThumb,
+                biometricEnabled ? styles.toggleThumbOn : styles.toggleThumbOff,
+              ]}
+            />
+          </View>
+        </Pressable>
+        <Pressable style={styles.settingsRow} onPress={() => {}}>
+          <View>
+            <Text style={styles.settingsRowText}>App lock</Text>
+            <Text style={styles.settingsRowSubtitle}>
+              Secure app access on open
+            </Text>
+          </View>
+          <Ionicons name="chevron-forward" size={18} color={palette.ink} />
+        </Pressable>
       </View>
+
+      <View style={styles.settingsCard}>
+        <Text style={styles.sectionTitle}>About</Text>
+        <Pressable style={styles.settingsRow} onPress={() => {}}>
+          <Text style={styles.settingsRowText}>Privacy policy</Text>
+          <Ionicons name="chevron-forward" size={18} color={palette.ink} />
+        </Pressable>
+        <Pressable style={styles.settingsRow} onPress={() => {}}>
+          <Text style={styles.settingsRowText}>Rate us</Text>
+          <Ionicons name="chevron-forward" size={18} color={palette.ink} />
+        </Pressable>
+        <Pressable style={styles.settingsRow} onPress={() => {}}>
+          <Text style={styles.settingsRowText}>About</Text>
+          <Ionicons name="chevron-forward" size={18} color={palette.ink} />
+        </Pressable>
+      </View>
+
+      <Pressable style={styles.logoutButton} onPress={() => {}}>
+        <Text style={styles.logoutButtonText}>Logout</Text>
+      </Pressable>
     </ScrollView>
   );
 };
@@ -303,70 +309,106 @@ const styles = StyleSheet.create({
   levelChipText: { color: palette.gold, fontSize: 11, fontWeight: "700" },
   xpNext: { color: "rgba(255,255,255,0.5)", fontSize: 12, marginTop: 6 },
 
-  // Money summary
-  moneyRow: { flexDirection: "row", gap: 12, marginBottom: 22 },
-  moneyCard: {
-    flex: 1,
+  profileCard: {
     backgroundColor: palette.bg,
-    padding: 16,
-    borderRadius: 20,
+    borderRadius: 24,
+    padding: 18,
+    marginBottom: 20,
     borderWidth: 1,
     borderColor: palette.hairline,
   },
-  moneyIcon: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 12,
-  },
-  moneyLabel: { color: palette.muted, fontSize: 12 },
-  moneyValue: {
-    fontFamily: FONT_NUMERIC,
-    fontSize: 17,
+  sectionTitle: {
+    fontSize: 15,
+    fontWeight: "700",
     color: palette.ink,
-    marginTop: 4,
+    marginBottom: 14,
   },
-
-  // Transaction history
-  section: { marginTop: 4 },
-  sectionTitle: { fontSize: 15, fontWeight: "700", color: palette.ink },
-  historyCard: {
+  infoRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 14,
+  },
+  infoLabel: {
+    color: palette.muted,
+    fontSize: 13,
+    flex: 1,
+  },
+  infoValue: {
+    color: palette.ink,
+    fontSize: 13,
+    fontWeight: "700",
+    textAlign: "right",
+    flex: 1,
+  },
+  settingsCard: {
     backgroundColor: palette.bg,
-    borderRadius: 22,
-    padding: 8,
-    marginTop: 12,
+    borderRadius: 24,
+    padding: 18,
     borderWidth: 1,
     borderColor: palette.hairline,
+    marginBottom: 20,
   },
-  activity: {
+  settingsRow: {
     flexDirection: "row",
+    justifyContent: "space-between",
     alignItems: "center",
-    padding: 10,
-    borderRadius: 16,
+    paddingVertical: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: palette.hairline,
   },
-  activityIcon: {
-    width: 42,
-    height: 42,
-    borderRadius: 16,
+  settingsRowText: {
+    color: palette.ink,
+    fontSize: 14,
+    fontWeight: "600",
+  },
+  settingsRowSubtitle: {
+    color: palette.muted,
+    fontSize: 12,
+    marginTop: 2,
+  },
+  toggle: {
+    width: 44,
+    height: 24,
+    borderRadius: 999,
+    borderWidth: 1,
     justifyContent: "center",
+    padding: 2,
+  },
+  toggleOn: {
+    backgroundColor: palette.successBg,
+    borderColor: palette.success,
+    alignItems: "flex-end",
+  },
+  toggleOff: {
+    backgroundColor: palette.surface,
+    borderColor: palette.hairline,
+    alignItems: "flex-start",
+  },
+  toggleThumb: {
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    backgroundColor: palette.bg,
+  },
+  toggleThumbOn: {
+    backgroundColor: palette.success,
+  },
+  toggleThumbOff: {
+    backgroundColor: palette.muted,
+  },
+  logoutButton: {
+    marginTop: 8,
+    backgroundColor: palette.danger,
+    borderRadius: 18,
+    paddingVertical: 16,
     alignItems: "center",
-    marginRight: 12,
   },
-  activityTitle: { fontWeight: "700", color: palette.ink, fontSize: 14 },
-  tag: {
-    backgroundColor: palette.mist,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 20,
-    alignSelf: "flex-start",
-    marginTop: 5,
+  logoutButtonText: {
+    color: palette.bg,
+    fontSize: 14,
+    fontWeight: "700",
   },
-  tagText: { color: palette.indigo, fontSize: 11, fontWeight: "600" },
-  amountBox: { alignItems: "flex-end" },
-  activityAmount: { fontWeight: "700", fontSize: 13 },
-  activityTime: { color: palette.muted, fontSize: 11, marginTop: 3 },
 });
 
 export default Setting;
