@@ -1,27 +1,33 @@
-import { Redirect, router } from "expo-router";
+import { StorageService } from "@/api/storageService";
+import { Colors } from "@/constants/Colors";
+import { router } from "expo-router";
 import React, { useEffect } from "react";
-import { Image, StyleSheet, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 import CustomText from "./shared/text/CustomText";
 
 const SplashScreen = () => {
-  const [redirect, setRedirect] = React.useState(false);
-
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setRedirect(true);
-    }, 2000);
-    return () => clearTimeout(timer);
+    const checkAuth = async () => {
+      const token = await StorageService.getItem("accessToken");
+
+      if (token) {
+        router.replace("/(mainapp)/(tabs)");
+        return;
+      }
+
+      const timer = setTimeout(() => {
+        router.replace("/onboarding");
+      }, 2000);
+
+      return () => clearTimeout(timer);
+    };
+
+    checkAuth();
   }, []);
-
-  useEffect(() => {
-    if (redirect) {
-      router.navigate("/onboarding");
-    }
-  }, [redirect]);
 
   return (
     <View style={styles.container}>
-     <CustomText>Naira - x</CustomText>
+      <CustomText color={Colors.light.white}>Naira - x</CustomText>
     </View>
   );
 };

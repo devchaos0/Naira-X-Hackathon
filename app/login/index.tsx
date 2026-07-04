@@ -1,5 +1,7 @@
+import { loginUser } from "@/api/mainapi/mainapi";
 import { Colors } from "@/constants/Colors";
 import { Ionicons } from "@expo/vector-icons";
+import { useMutation } from "@tanstack/react-query";
 import { router } from "expo-router";
 import React, { useState } from "react";
 import { Image, Pressable, StyleSheet, View } from "react-native";
@@ -11,6 +13,7 @@ const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [formError, setFormError] = useState("");
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
@@ -23,6 +26,34 @@ const Login = () => {
       color={Colors.light.baseblack}
     />
   );
+
+  const loginMutation = useMutation({
+    mutationFn: async () => loginUser({ email, password }),
+    onSuccess: (data) => {
+      if (data?.success) {
+        setFormError("");
+        router.replace("/(mainapp)/(tabs)");
+      } else {
+        setFormError(data?.message || "Login failed.");
+      }
+    },
+    onError: (error: any) => {
+      const message =
+        error?.response?.data?.message || "Unable to log you in right now.";
+      setFormError(message);
+    },
+  });
+
+  const handleLogin = () => {
+    setFormError("");
+
+    if (!email.trim() || !password.trim()) {
+      setFormError("Please enter your email and password.");
+      return;
+    }
+
+    loginMutation.mutate();
+  };
 
   return (
     <View style={styles.container}>
@@ -71,8 +102,18 @@ const Login = () => {
           </CustomText>
         </Pressable>
 
+        {formError ? (
+          <CustomText style={styles.errorText}>{formError}</CustomText>
+        ) : null}
+
         <View style={{ marginTop: 12 }}>
-          <Button onPress={() => router.push("/(tabs)")}>Log In</Button>
+          <Button
+            onPress={handleLogin}
+            loading={loginMutation.isPending}
+            disabled={loginMutation.isPending}
+          >
+            Log In
+          </Button>
         </View>
       </View>
     </View>
@@ -91,5 +132,10 @@ const styles = StyleSheet.create({
     height: 87,
     width: 87,
     resizeMode: "contain",
+  },
+  errorText: {
+    marginTop: 8,
+    color: Colors.light.error300,
+    textAlign: "center",
   },
 });

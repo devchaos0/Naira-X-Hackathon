@@ -1,18 +1,21 @@
 import React, { useEffect, useRef, useState } from "react";
 import { StyleSheet, TextInput, View } from "react-native";
 
+import { verifyEmail } from "@/api/mainapi/mainapi";
 import { Colors } from "@/constants/Colors";
+import { useMutation } from "@tanstack/react-query";
 import { router, useLocalSearchParams } from "expo-router";
 import Button from "../shared/button";
 import CustomText from "../shared/text/CustomText";
 
 const Mail = () => {
-  const [otp, setOtp] = useState(new Array(4).fill(""));
+  const [otp, setOtp] = useState(new Array(6).fill(""));
   const [activeOTPIndex, setActiveOTPIndex] = useState(0);
   const inputRefs = useRef<Array<TextInput | null>>([]);
   const [isOtpComplete, setIsOtpComplete] = useState(false);
+  const [feedback, setFeedback] = useState("");
 
-  const { email } = useLocalSearchParams();
+  const { email } = useLocalSearchParams<{ email?: string }>();
 
   useEffect(() => {
     // Focus the active input
@@ -25,6 +28,34 @@ const Mail = () => {
     const complete = otp.every((digit) => digit !== "");
     setIsOtpComplete(complete);
   }, [otp]);
+
+  const verifyMutation = useMutation({
+    mutationFn: async () => {
+      if (!email) {
+        throw new Error("Email is missing.");
+      }
+
+      return verifyEmail({
+        email: String(email),
+        otp: otp.join(""),
+      });
+    },
+    onSuccess: (data) => {
+      if (data?.success) {
+        setFeedback(data.data?.message || "Email verified successfully.");
+        router.replace("/signup/success");
+      } else {
+        setFeedback(data?.message || "Verification failed.");
+      }
+    },
+    onError: (error: any) => {
+      const message =
+        error?.response?.data?.message ||
+        error?.message ||
+        "Unable to verify your email right now.";
+      setFeedback(message);
+    },
+  });
 
   const handleOnChange = (text: string, index: number) => {
     if (/^\d*$/.test(text)) {
@@ -55,6 +86,16 @@ const Mail = () => {
     setActiveOTPIndex(index);
   };
 
+  const handleVerify = () => {
+    setFeedback("");
+    if (!isOtpComplete) {
+      setFeedback("Please enter the 6-digit code.");
+      return;
+    }
+
+    verifyMutation.mutate();
+  };
+
   return (
     <View style={styles.container}>
       <View style={{ marginTop: 42, gap: 6 }}>
@@ -62,7 +103,7 @@ const Mail = () => {
           Check Your Email
         </CustomText>
         <CustomText medium={true} variant="h5" style={{ maxWidth: 300 }}>
-          We sent a 4-digit code to your mail
+          We sent a 6-digit code to your mail
         </CustomText>
       </View>
 
@@ -91,9 +132,18 @@ const Mail = () => {
         ))}
       </View>
 
-      {/* Action Buttons */}
+      {feedback ? (
+        <CustomText style={styles.feedbackText}>{feedback}</CustomText>
+      ) : null}
+
       <View style={{ marginTop: 12, gap: 16 }}>
-        <Button onPress={()=> router.navigate("/signup/success")}>Verify OTP</Button>
+        <Button
+          onPress={handleVerify}
+          loading={verifyMutation.isPending}
+          disabled={verifyMutation.isPending}
+        >
+          Verify OTP
+        </Button>
       </View>
     </View>
   );
@@ -150,5 +200,10 @@ const styles = StyleSheet.create({
   resendLink: {
     color: Colors.light.primary,
     textDecorationLine: "underline",
+  },
+  feedbackText: {
+    marginTop: 8,
+    textAlign: "center",
+    color: Colors.light.error300,
   },
 });

@@ -1,18 +1,22 @@
-
 import { Colors } from "@/constants/Colors";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useFonts } from "expo-font";
 import { Slot } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useState } from "react";
-import { Alert, View } from "react-native";
+import { View } from "react-native";
 import "react-native-gesture-handler";
 import "react-native-reanimated";
-import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from "react-native-safe-area-context";
 
+const queryClient = new QueryClient();
 
 export default function RootLayout() {
-    const insets = useSafeAreaInsets();
+  const insets = useSafeAreaInsets();
 
   const [isReady, setIsReady] = useState(false);
 
@@ -47,7 +51,7 @@ export default function RootLayout() {
   }
 
   return (
-     <SafeAreaView
+    <SafeAreaView
       style={{ flex: 1, backgroundColor: Colors.light.baseblack }}
       edges={["bottom", "left", "right"]}
     >
@@ -56,8 +60,10 @@ export default function RootLayout() {
         style={{ flex: 1, paddingTop: insets.top, backgroundColor: "#F8F9FC" }}
       >
         <StatusBar style="dark" backgroundColor="#fff" />
-        <Slot />
-        </View>
+        <QueryClientProvider client={queryClient}>
+          <Slot />
+        </QueryClientProvider>
+      </View>
     </SafeAreaView>
   );
 }
