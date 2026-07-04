@@ -1,4 +1,6 @@
+import { StorageService } from "@/api/storageService";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import { router } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
 import {
   Animated,
@@ -94,6 +96,13 @@ const Setting = () => {
   const xp = 12450;
   const xpToNext = 37550;
   const xpProgress = xp / (xp + xpToNext);
+
+  const handleLogout = async () => {
+    await StorageService.removeItem("accessToken");
+    await StorageService.removeItem("refreshToken");
+    await StorageService.removeItem("userdata");
+    router.replace("/login");
+  };
 
   return (
     <ScrollView
@@ -238,7 +247,7 @@ const Setting = () => {
         </Pressable>
       </View>
 
-      <Pressable style={styles.logoutButton} onPress={() => {}}>
+      <Pressable style={styles.logoutButton} onPress={handleLogout}>
         <Text style={styles.logoutButtonText}>Logout</Text>
       </Pressable>
     </ScrollView>
