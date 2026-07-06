@@ -1,9 +1,20 @@
-import { CreateCrowdFundForm, CrowdFundItem } from "@/api/type";
+import {
+  createFund,
+  getMyAjoFunds,
+  getPublicAjoFunds,
+  joinAjoFund,
+} from "@/api/mainapi/mainapi";
+import {
+  AjoFundListItem,
+  CreateCrowdFundForm,
+  CrowdFundItem,
+} from "@/api/type";
 import CustomText from "@/app/shared/text/CustomText";
 import { Colors } from "@/constants/Colors";
+import { getApiErrorMessage } from "@/utils/apiError";
 import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Alert, FlatList, StyleSheet, View } from "react-native";
 import AcceptCrowdFundModal from "../component/crowdfund/AcceptCrowdFundModal";
 import CreateCrowdFundModal from "../component/crowdfund/CreateCrowdFundModal";
@@ -49,8 +60,8 @@ const MOCK_CROWDFUNDS: CrowdFundItem[] = [
 
 export default function CrowdFund() {
   const [activeTab, setActiveTab] = useState<"my" | "all">("my");
-  const [crowdfunds, setCrowdfunds] =
-    useState<CrowdFundItem[]>(MOCK_CROWDFUNDS);
+  const [crowdfunds, setCrowdfunds] = useState<CrowdFundItem[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
   const [showFloatingOptions, setShowFloatingOptions] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showAcceptModal, setShowAcceptModal] = useState(false);
@@ -67,13 +78,68 @@ export default function CrowdFund() {
   // Accept form states
   const [acceptCode, setAcceptCode] = useState("");
 
+  const normalizeCrowdFund = (
+    fund: AjoFundListItem,
+    isMine = false,
+  ): CrowdFundItem => ({
+    id: fund._id || Date.now().toString(),
+    name: fund.title || "Untitled squad",
+    details: fund.description || "",
+    duration: fund.deadline
+      ? new Date(fund.deadline).toISOString().split("T")[0]
+      : "",
+    targetAmount: fund.targetAmount || 0,
+    raisedAmount: fund.amountRaised || 0,
+    code: fund.inviteCode || "",
+    createdAt: fund.createdAt ? fund.createdAt.split("T")[0] : "",
+    creatorId: fund.creatorId || "",
+    isMine,
+  });
+
+  useEffect(() => {
+    const loadCrowdfunds = async () => {
+      setIsLoading(true);
+
+      try {
+        const [publicResponse, myResponse] = await Promise.all([
+          getPublicAjoFunds(),
+          getMyAjoFunds(),
+        ]);
+
+        const publicFunds = Array.isArray(publicResponse?.data)
+          ? publicResponse.data.map((item) => normalizeCrowdFund(item, false))
+          : [];
+        const myFunds = Array.isArray(myResponse?.data)
+          ? myResponse.data.map((item) => normalizeCrowdFund(item, true))
+          : [];
+
+        const merged = [...myFunds, ...publicFunds];
+        const uniqueFunds = merged.filter(
+          (item, index, self) =>
+            index === self.findIndex((candidate) => candidate.id === item.id),
+        );
+
+        setCrowdfunds(uniqueFunds);
+      } catch (error: any) {
+        Alert.alert(
+          "Error",
+          getApiErrorMessage(error, "Unable to load crowd funds"),
+        );
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadCrowdfunds();
+  }, []);
+
   // Generate a random 6-digit code
   const generateCode = () => {
     return Math.floor(100000 + Math.random() * 900000).toString();
   };
 
   // Handle create crowd fund
-  const handleCreateCrowdfund = () => {
+  const handleCreateCrowdfund = async () => {
     if (
       !createForm.name ||
       !createForm.details ||
@@ -84,23 +150,49 @@ export default function CrowdFund() {
       return;
     }
 
-    const newCrowdfund: CrowdFundItem = {
-      id: Date.now().toString(),
-      name: createForm.name,
-      details: createForm.details,
-      duration: createForm.duration,
-      targetAmount: parseFloat(createForm.amount),
-      raisedAmount: 0,
-      code: generateCode(),
-      createdAt: new Date().toISOString().split("T")[0],
-      creatorId: "user1",
-    };
+    try {
+      const response = await createFund({
+        title: createForm.name,
+        description: createForm.details,
+        targetAmount: Number(createForm.amount),
+        visibility: "private",
+        deadline: createForm.duration,
+        category: "gift",
+      });
 
-    setCrowdfunds([newCrowdfund, ...crowdfunds]);
-    setShowCreateModal(false);
-    setCreateForm({ name: "", details: "", duration: "", amount: "" });
-    setShowFloatingOptions(false);
-    Alert.alert("Success", "Crowd fund created successfully!");
+      if (response?.success) {
+        const newCrowdfund: CrowdFundItem = {
+          id: Date.now().toString(),
+          name: createForm.name,
+          details: createForm.details,
+          duration: createForm.duration,
+          targetAmount: Number(createForm.amount),
+          raisedAmount: 0,
+          code: generateCode(),
+          createdAt: new Date().toISOString().split("T")[0],
+          creatorId: "user1",
+        };
+
+        setCrowdfunds([newCrowdfund, ...crowdfunds]);
+        setShowCreateModal(false);
+        setCreateForm({ name: "", details: "", duration: "", amount: "" });
+        setShowFloatingOptions(false);
+        Alert.alert(
+          "Success",
+          response.data?.message || "Crowd fund created successfully!",
+        );
+      } else {
+        Alert.alert(
+          "Error",
+          response?.message || "Unable to create crowd fund",
+        );
+      }
+    } catch (error: any) {
+      Alert.alert(
+        "Error",
+        getApiErrorMessage(error, "Unable to create crowd fund"),
+      );
+    }
   };
 
   // Handle accept crowd fund
@@ -119,24 +211,59 @@ export default function CrowdFund() {
     });
   };
 
-  const handleAcceptCrowdfund = () => {
-    if (!acceptCode.trim()) {
+  const handleAcceptCrowdfund = async () => {
+    const trimmedCode = acceptCode.trim();
+
+    if (!trimmedCode) {
       Alert.alert("Error", "Please enter a crowd fund code");
       return;
     }
 
-    const found = crowdfunds.find((item) => item.code === acceptCode.trim());
-    if (found) {
-      setShowAcceptModal(false);
-      setAcceptCode("");
-      setShowFloatingOptions(false);
-      navigateToCrowdFundDetail(found);
-    } else {
-      Alert.alert("Error", "Invalid crowd fund code. Please try again.");
+    try {
+      const response = await joinAjoFund({
+        inviteCode: trimmedCode.toUpperCase(),
+      });
+
+      if (response?.success) {
+        const joinedFund = response.data;
+        const joinedCrowdFund: CrowdFundItem = {
+          id: joinedFund?._id || Date.now().toString(),
+          name: joinedFund?.title || "Joined Squad",
+          details: joinedFund?.description || "",
+          duration: joinedFund?.deadline
+            ? new Date(joinedFund.deadline).toISOString().split("T")[0]
+            : "",
+          targetAmount: joinedFund?.targetAmount || 0,
+          raisedAmount: joinedFund?.amountRaised || 0,
+          code: joinedFund?.inviteCode || trimmedCode.toUpperCase(),
+          createdAt: joinedFund?.createdAt
+            ? joinedFund.createdAt.split("T")[0]
+            : new Date().toISOString().split("T")[0],
+          creatorId: joinedFund?.creatorId || "user1",
+        };
+
+        setCrowdfunds((current) => [joinedCrowdFund, ...current]);
+        setShowAcceptModal(false);
+        setAcceptCode("");
+        setShowFloatingOptions(false);
+        Alert.alert("Success", response.message || "Joined AjoFund");
+        navigateToCrowdFundDetail(joinedCrowdFund);
+      } else {
+        Alert.alert(
+          "Error",
+          response?.message ||
+            getApiErrorMessage(response, "Invalid invite code"),
+        );
+      }
+    } catch (error: any) {
+      Alert.alert(
+        "Error",
+        getApiErrorMessage(error, "Unable to join crowd fund"),
+      );
     }
   };
 
-  const myCrowdfunds = crowdfunds.filter((item) => item.creatorId === "user1");
+  const myCrowdfunds = crowdfunds.filter((item) => item.isMine);
   const allCrowdfunds = crowdfunds;
   const displayedCrowdfunds = activeTab === "my" ? myCrowdfunds : allCrowdfunds;
 

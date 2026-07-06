@@ -1,6 +1,11 @@
 import api from "@/api/apiInterceptor";
 import { StorageService } from "@/api/storageService";
 import {
+  AjoFundListResponse,
+  CreateFundPayload,
+  CreateFundResponse,
+  JoinAjoPayload,
+  JoinAjoResponse,
   LoginPayload,
   RegisterPayload,
   RegisterResponse,
@@ -57,5 +62,32 @@ export const loginUser = async (
     await saveAuthSession(response.data);
   }
 
+  return response.data;
+};
+
+export const createFund = async (
+  payload: CreateFundPayload,
+): Promise<CreateFundResponse> => {
+  const response = await api.post<CreateFundResponse>(
+    "/ajo/create-fund",
+    payload,
+  );
+  return response.data;
+};
+
+export const joinAjoFund = async (
+  payload: JoinAjoPayload,
+): Promise<JoinAjoResponse> => {
+  const response = await api.post<JoinAjoResponse>("/ajo/join", payload);
+  return response.data;
+};
+
+export const getPublicAjoFunds = async (): Promise<AjoFundListResponse> => {
+  const response = await api.get<AjoFundListResponse>("/ajo");
+  return response.data;
+};
+
+export const getMyAjoFunds = async (): Promise<AjoFundListResponse> => {
+  const response = await api.get<AjoFundListResponse>("/ajo/mine");
   return response.data;
 };
