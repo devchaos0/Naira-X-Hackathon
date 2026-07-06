@@ -1,8 +1,15 @@
+import { StorageService } from "@/api/storageService";
 import { Feather, Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import React, { useState } from "react";
-import { Pressable, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import React, { useEffect, useState } from "react";
+import {
+  Pressable,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
 const colors = {
   purple900: "#26215C",
@@ -67,7 +74,7 @@ interface ChatHeaderProps {
   account: Account;
   balanceHidden: boolean;
   onToggleBalance: () => void;
-  topInset: number;
+  topInset?: number;
 }
 
 interface TransactionItemProps {
@@ -205,6 +212,16 @@ function MoneySummary() {
 
 export default function Chat() {
   const [balanceHidden, setBalanceHidden] = useState(false);
+  const [showKycNotice, setShowKycNotice] = useState(false);
+
+  useEffect(() => {
+    const loadState = async () => {
+      const completed = await StorageService.getItem("walletSetupCompleted");
+      setShowKycNotice(!completed);
+    };
+
+    loadState();
+  }, []);
 
   return (
     <View style={styles.screen}>
@@ -217,7 +234,10 @@ export default function Chat() {
       />
       <View style={{ flex: 1, paddingHorizontal: 18, paddingTop: 20 }}>
         <View style={styles.quickActionRow}>
-          <Pressable onPress={() => router.navigate("/chat")} style={styles.actionCard}>
+          <Pressable
+            onPress={() => router.navigate("/chat")}
+            style={styles.actionCard}
+          >
             <View
               style={[
                 styles.actionIcon,
@@ -229,7 +249,10 @@ export default function Chat() {
             <Text style={styles.actionTitle}>Chat transfer</Text>
             <Text style={styles.actionSubtitle}>Send money through chat</Text>
           </Pressable>
-          <Pressable onPress={() => router.navigate("/fundme")} style={styles.actionCard}>
+          <Pressable
+            onPress={() => router.navigate("/fundme")}
+            style={styles.actionCard}
+          >
             <View
               style={[styles.actionIcon, { backgroundColor: colors.purple100 }]}
             >
@@ -240,6 +263,25 @@ export default function Chat() {
           </Pressable>
         </View>
         {/* <MoneySummary /> */}
+        {showKycNotice ? (
+          <TouchableOpacity
+            style={styles.kycCard}
+            onPress={() => router.navigate("/(mainapp)/kyc" as any)}
+            activeOpacity={0.9}
+          >
+            <View style={styles.kycIconWrap}>
+              <Feather name="shield" size={18} color={palette.indigo} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.kycTitle}>Complete your KYC</Text>
+              <Text style={styles.kycSubtitle}>
+                Set up your wallet and unlock transfers.
+              </Text>
+            </View>
+            <Feather name="arrow-right" size={18} color={palette.muted} />
+          </TouchableOpacity>
+        ) : null}
+
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Transaction history</Text>
           <View style={styles.historyCard}>
@@ -432,6 +474,27 @@ const styles = StyleSheet.create({
   },
 
   // Transaction history
+  kycCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: palette.bg,
+    borderRadius: 20,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: palette.hairline,
+    marginBottom: 16,
+  },
+  kycIconWrap: {
+    width: 40,
+    height: 40,
+    borderRadius: 14,
+    backgroundColor: palette.mist,
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 12,
+  },
+  kycTitle: { fontSize: 14, fontWeight: "700", color: palette.ink },
+  kycSubtitle: { fontSize: 12, color: palette.muted, marginTop: 3 },
   section: { marginTop: 4 },
   sectionTitle: { fontSize: 15, fontWeight: "700", color: palette.ink },
   historyCard: {

@@ -62,6 +62,50 @@ export interface JoinAjoPayload {
   inviteCode: string;
 }
 
+export interface WalletSetupPayload {
+  accountName: string;
+  bvn: string;
+  gender: string;
+  age: string;
+  pin: string;
+}
+
+export interface WalletSetupResponse {
+  success: boolean;
+  message?: string;
+  data?: {
+    id?: string;
+    bank?: string;
+    accountNumber?: string;
+    accountName?: string;
+    currency?: string;
+    balance?: number;
+    availableBalance?: number;
+  };
+  code?: string;
+  errors?: Array<{
+    field?: string;
+    message?: string;
+  }>;
+}
+
+export interface ChatMessagePayload {
+  message: string;
+}
+
+export interface ChatMessageResponse {
+  success: boolean;
+  data?: {
+    reply?: string;
+  };
+  message?: string;
+  code?: string;
+  errors?: Array<{
+    field?: string;
+    message?: string;
+  }>;
+}
+
 export interface JoinedAjoFund {
   _id?: string;
   creatorId?: string;

@@ -2,6 +2,8 @@ import api from "@/api/apiInterceptor";
 import { StorageService } from "@/api/storageService";
 import {
   AjoFundListResponse,
+  ChatMessagePayload,
+  ChatMessageResponse,
   CreateFundPayload,
   CreateFundResponse,
   JoinAjoPayload,
@@ -11,6 +13,8 @@ import {
   RegisterResponse,
   VerifyEmailPayload,
   VerifyEmailResponse,
+  WalletSetupPayload,
+  WalletSetupResponse,
 } from "../type";
 
 export const registerUser = async (
@@ -89,5 +93,22 @@ export const getPublicAjoFunds = async (): Promise<AjoFundListResponse> => {
 
 export const getMyAjoFunds = async (): Promise<AjoFundListResponse> => {
   const response = await api.get<AjoFundListResponse>("/ajo/mine");
+  return response.data;
+};
+
+export const sendChatMessage = async (
+  payload: ChatMessagePayload,
+): Promise<ChatMessageResponse> => {
+  const response = await api.post<ChatMessageResponse>("/ai/chat", payload);
+  return response.data;
+};
+
+export const setupWallet = async (
+  payload: WalletSetupPayload,
+): Promise<WalletSetupResponse> => {
+  const response = await api.post<WalletSetupResponse>(
+    "/wallet/setup",
+    payload,
+  );
   return response.data;
 };
