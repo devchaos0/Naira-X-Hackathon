@@ -1,3 +1,4 @@
+import { sendChatMessage } from "@/api/mainapi/mainapi";
 import { Colors } from "@/constants/Colors";
 import { Feather } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
@@ -84,26 +85,6 @@ interface Account {
 
 type ChatMessage = DateMessage | BotMessage | UserMessage | ConfirmMessage;
 
-const initialMessages: ChatMessage[] = [
-  { id: "d1", type: "date", text: "Today" },
-  {
-    id: "m1",
-    type: "bot",
-    text: 'Hey Olamide — try "send 5k to Femi" or "or perform any transaction" and I\'ll handle it.',
-  },
-  { id: "m2", type: "user", text: "send 15,000 to Amaka, GTBank" },
-  {
-    id: "m3",
-    type: "confirm",
-    text: "Confirm this transfer",
-    details: {
-      to: "Amaka Nwosu",
-      bank: "GTBank · 0089213456",
-      amount: 15000,
-    },
-    resolved: false,
-  },
-];
 
 const formatMoney = (value: number): string =>
   "₦" + Number(value).toLocaleString("en-NG", { maximumFractionDigits: 0 });
@@ -238,9 +219,9 @@ function MessageRow({ item, onConfirm, onCancel }: MessageRowProps) {
 }
 
 const ChatTransfer = () => {
-  const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
-  const [balanceHidden, setBalanceHidden] = useState(false);
+  const [isSending, setIsSending] = useState(false);
   const listRef = useRef<FlatList<ChatMessage>>(null);
 
   const insets = useSafeAreaInsets();
@@ -275,19 +256,58 @@ const ChatTransfer = () => {
     [scrollToEnd],
   );
 
-  const handleSend = useCallback(() => {
+  const handleSend = useCallback(async () => {
     const trimmed = input.trim();
-    if (!trimmed) return;
+    if (!trimmed || isSending) return;
 
     const userMessage: UserMessage = {
       id: `u-${Date.now()}`,
       type: "user",
       text: trimmed,
     };
-    setMessages((prev) => [...prev, userMessage]);
+
+    const typingMessage: BotMessage = {
+      id: `b-${Date.now()}`,
+      type: "bot",
+      text: "Thinking...",
+    };
+
+    setMessages((prev) => [...prev, userMessage, typingMessage]);
     setInput("");
+    setIsSending(true);
     scrollToEnd();
-  }, [input, scrollToEnd]);
+
+    try {
+      const response = await sendChatMessage({ message: trimmed });
+      const reply =
+        response?.data?.reply ||
+        response?.message ||
+        "I couldn't process that request right now.";
+
+      setMessages((prev) =>
+        prev
+          .filter((message) => message.id !== typingMessage.id)
+          .concat({
+            id: `b-${Date.now() + 1}`,
+            type: "bot",
+            text: reply,
+          }),
+      );
+    } catch (error: any) {
+      setMessages((prev) =>
+        prev
+          .filter((message) => message.id !== typingMessage.id)
+          .concat({
+            id: `b-${Date.now() + 2}`,
+            type: "bot",
+            text: error?.message || "I couldn't reach the assistant right now.",
+          }),
+      );
+    } finally {
+      setIsSending(false);
+      requestAnimationFrame(() => scrollToEnd());
+    }
+  }, [input, isSending, scrollToEnd]);
 
   const renderItem = useCallback(
     ({ item }: ListRenderItemInfo<ChatMessage>) => (
@@ -328,6 +348,7 @@ const ChatTransfer = () => {
             placeholderTextColor={colors.textMuted}
             returnKeyType="send"
             onSubmitEditing={handleSend}
+            editable={!isSending}
           />
           <TouchableOpacity
             style={[
@@ -335,7 +356,7 @@ const ChatTransfer = () => {
               !input.trim() && styles.sendButtonDisabled,
             ]}
             onPress={handleSend}
-            disabled={!input.trim()}
+            disabled={!input.trim() || isSending}
             accessibilityLabel="Send message"
           >
             <Feather name="arrow-up" size={18} color={Colors.light.white} />

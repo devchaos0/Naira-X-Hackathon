@@ -44,6 +44,10 @@ const Rootlayout = () => {
         name="fundme/index"
         options={{ headerShown: false }}
       />
+      <Stack.Screen
+        name="kyc/index"
+        options={{ headerShown: false }}
+      />
     </Stack>
   );
 };

@@ -1,3 +1,4 @@
+import { useCurrentAccount } from "@/api/mainapi/mainapi";
 import { Feather, Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React from "react";
@@ -31,17 +32,6 @@ const colors = {
   textMuted: "#6B6B70",
 } as const;
 
-const ACCOUNT = {
-  initials: "OO",
-  greeting: "Good afternoon",
-  name: "Olamide Oladele",
-  balance: 482150,
-  accountNumber: "0123456789",
-  bankName: "Nomba",
-  tier: "Hustler",
-  points: 1240,
-};
-
 const formatMoney = (value: number): string =>
   "₦" + Number(value).toLocaleString("en-NG", { maximumFractionDigits: 0 });
 
@@ -50,14 +40,15 @@ const copyToClipboard = (text: string, label: string) => {
   Alert.alert("Copied", `${label} copied to clipboard.`);
 };
 
-const shareDetails = async () => {
-  const details = `Account name: ${ACCOUNT.name}\nAccount number: ${ACCOUNT.accountNumber}\nBank: ${ACCOUNT.bankName}\nTier: ${ACCOUNT.tier}`;
-  await Share.share({ message: `Fund me details:\n${details}` });
-};
-
 export default function Fundme() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { account } = useCurrentAccount();
+  const fullDetails = `Account name: ${account.accountName}\nAccount number: ${account.accountNumber}\nBank: ${account.bankName}\nTier: ${account.tier}`;
+
+  const shareDetails = async () => {
+    await Share.share({ message: `Fund me details:\n${fullDetails}` });
+  };
 
   return (
     <View style={[styles.screen]}>
@@ -89,27 +80,27 @@ export default function Fundme() {
         <View style={styles.heroCard}>
           <View style={styles.heroTop}>
             <View style={styles.avatarCircle}>
-              <Text style={styles.avatarText}>{ACCOUNT.initials}</Text>
+              <Text style={styles.avatarText}>{account.initials}</Text>
             </View>
             <View style={styles.heroInfo}>
-              <Text style={styles.heroLabel}>{ACCOUNT.greeting}</Text>
-              <Text style={styles.heroName}>{ACCOUNT.name}</Text>
+              <Text style={styles.heroLabel}>{account.greeting}</Text>
+              <Text style={styles.heroName}>{account.name}</Text>
             </View>
           </View>
 
           <Text style={styles.balanceLabel}>Available balance</Text>
           <Text style={styles.balanceValue}>
-            {formatMoney(ACCOUNT.balance)}
+            {formatMoney(account.balance)}
           </Text>
 
           <View style={styles.metaRow}>
             <View style={styles.metaBadge}>
               <Feather name="award" size={12} />
-              <Text style={styles.metaText}>{ACCOUNT.tier}</Text>
+              <Text style={styles.metaText}>{account.tier}</Text>
             </View>
             <View style={styles.metaBadgeSecondary}>
               <Feather name="zap" size={12} color={colors.purple700} />
-              <Text style={styles.metaText}>{ACCOUNT.points} XP</Text>
+              <Text style={styles.metaText}>{account.points} XP</Text>
             </View>
           </View>
         </View>
@@ -119,19 +110,19 @@ export default function Fundme() {
 
           <View style={styles.detailRow}>
             <Text style={styles.detailLabel}>Bank name</Text>
-            <Text style={styles.detailValue}>{ACCOUNT.bankName}</Text>
+            <Text style={styles.detailValue}>{account.bankName}</Text>
           </View>
           <View style={styles.detailRow}>
             <Text style={styles.detailLabel}>Account number</Text>
-            <Text style={styles.detailValue}>{ACCOUNT.accountNumber}</Text>
+            <Text style={styles.detailValue}>{account.accountNumber}</Text>
           </View>
           <View style={styles.detailRow}>
             <Text style={styles.detailLabel}>Account name</Text>
-            <Text style={styles.detailValue}>{ACCOUNT.name}</Text>
+            <Text style={styles.detailValue}>{account.accountName}</Text>
           </View>
           <View style={styles.detailRow}>
             <Text style={styles.detailLabel}>Tier</Text>
-            <Text style={styles.detailValue}>{ACCOUNT.tier}</Text>
+            <Text style={styles.detailValue}>{account.tier}</Text>
           </View>
 
           <View style={styles.divider} />
@@ -146,7 +137,7 @@ export default function Fundme() {
           <TouchableOpacity
             style={[styles.actionButton, styles.primaryButton]}
             onPress={() =>
-              copyToClipboard(ACCOUNT.accountNumber, "Account number")
+              copyToClipboard(account.accountNumber, "Account number")
             }
           >
             <Text style={styles.actionButtonText}>Copy account number</Text>
@@ -155,7 +146,7 @@ export default function Fundme() {
             style={[styles.actionButton, styles.secondaryButton]}
             onPress={() =>
               copyToClipboard(
-                `Account name: ${ACCOUNT.name}\nAccount number: ${ACCOUNT.accountNumber}\nBank: ${ACCOUNT.bankName}\nTier: ${ACCOUNT.tier}`,
+                fullDetails,
                 "Full details",
               )
             }

@@ -1,4 +1,5 @@
 import { StorageService } from "@/api/storageService";
+import { useCurrentAccount } from "@/api/mainapi/mainapi";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
@@ -89,12 +90,13 @@ function XPRing({ progress }: { progress: number }) {
 }
 
 const Setting = () => {
+  const { account } = useCurrentAccount();
   const [profileImage] = useState("https://i.pravatar.cc/300");
   const [biometricEnabled, setBiometricEnabled] = useState(true);
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
 
-  const xp = 12450;
-  const xpToNext = 37550;
+  const xp = account.points;
+  const xpToNext = Math.max(0, 50000 - xp);
   const xpProgress = xp / (xp + xpToNext);
 
   const handleLogout = async () => {
@@ -121,8 +123,8 @@ const Setting = () => {
           </View>
 
           <View style={{ flex: 1 }}>
-            <Text style={styles.heroName}>Oladele</Text>
-            <Text style={styles.heroEmail}>oladele@email.com</Text>
+            <Text style={styles.heroName}>{account.name}</Text>
+            <Text style={styles.heroEmail}>{account.email}</Text>
           </View>
         </View>
 
@@ -135,11 +137,11 @@ const Setting = () => {
                 {xp.toLocaleString("en-NG")} XP
               </Text>
               <View style={styles.levelChip}>
-                <Text style={styles.levelChipText}>Odogwu</Text>
+                <Text style={styles.levelChipText}>{account.tier}</Text>
               </View>
             </View>
             <Text style={styles.xpNext}>
-              {xpToNext.toLocaleString("en-NG")} XP to Legend
+              {xpToNext.toLocaleString("en-NG")} XP to next tier
             </Text>
           </View>
         </View>

@@ -1,5 +1,6 @@
 import { CreateCrowdFundForm } from "@/api/type";
 import { Ionicons } from "@expo/vector-icons";
+import DateTimePicker from "@react-native-community/datetimepicker";
 import React, { useEffect, useRef, useState } from "react";
 import {
   Animated,
@@ -41,8 +42,6 @@ interface CreateCrowdFundModalProps {
 }
 
 type Visibility = "public" | "private";
-
-const DURATIONS = ["30 days", "60 days", "90 days", "180 days"];
 
 const GOAL_REFERENCE = 500_000;
 
@@ -153,16 +152,15 @@ const CreateCrowdFundModal: React.FC<CreateCrowdFundModalProps> = ({
 }) => {
   const insets = useSafeAreaInsets();
   const [visibility, setVisibility] = useState<Visibility>("public");
-  const [useCustomDuration, setUseCustomDuration] = useState(false);
+  const [showDatePicker, setShowDatePicker] = useState(false);
 
-  const handleSelectPresetDuration = (d: string) => {
-    setUseCustomDuration(false);
-    setForm({ ...form, duration: d });
-  };
+  const handleDateChange = (_event: unknown, selectedDate?: Date) => {
+    setShowDatePicker(false);
 
-  const handleSelectCustomDuration = () => {
-    setUseCustomDuration(true);
-    setForm({ ...form, duration: "" });
+    if (selectedDate) {
+      const formattedDate = selectedDate.toISOString().split("T")[0];
+      setForm({ ...form, duration: formattedDate });
+    }
   };
 
   const handleAmountChange = (text: string) => {
@@ -224,52 +222,28 @@ const CreateCrowdFundModal: React.FC<CreateCrowdFundModalProps> = ({
             </View>
 
             <View style={styles.section}>
-              <FieldLabel>THE CLOCK</FieldLabel>
-              <View style={styles.chipRow}>
-                {DURATIONS.map((d) => {
-                  const active = !useCustomDuration && form.duration === d;
-                  return (
-                    <TouchableOpacity
-                      key={d}
-                      onPress={() => handleSelectPresetDuration(d)}
-                      style={[styles.chip, active && styles.chipActive]}
-                    >
-                      <Text
-                        style={[
-                          styles.chipText,
-                          active && styles.chipTextActive,
-                        ]}
-                      >
-                        {d.replace(" days", "d")}
-                      </Text>
-                    </TouchableOpacity>
-                  );
-                })}
-                <TouchableOpacity
-                  onPress={handleSelectCustomDuration}
-                  style={[styles.chip, useCustomDuration && styles.chipActive]}
-                >
-                  <Text
-                    style={[
-                      styles.chipText,
-                      useCustomDuration && styles.chipTextActive,
-                    ]}
-                  >
-                    Custom
-                  </Text>
-                </TouchableOpacity>
-              </View>
-              {useCustomDuration && (
-                <>
-                  <View style={styles.fieldGap} />
-                  <TextField
-                    placeholder="e.g. 45 days"
-                    value={form.duration}
-                    onChangeText={(text) =>
-                      setForm({ ...form, duration: text })
-                    }
-                  />
-                </>
+              <FieldLabel>THE DEADLINE</FieldLabel>
+              <TouchableOpacity
+                style={styles.dateField}
+                onPress={() => setShowDatePicker(true)}
+              >
+                <Text style={styles.dateFieldText}>
+                  {form.duration ? form.duration : "Pick a date"}
+                </Text>
+                <Ionicons
+                  name="calendar-outline"
+                  size={18}
+                  color={palette.indigo}
+                />
+              </TouchableOpacity>
+              {showDatePicker && (
+                <DateTimePicker
+                  value={form.duration ? new Date(form.duration) : new Date()}
+                  mode="date"
+                  display="default"
+                  minimumDate={new Date()}
+                  onChange={handleDateChange}
+                />
               )}
             </View>
 
@@ -451,17 +425,19 @@ const styles = StyleSheet.create({
     height: 84,
   },
 
-  // Duration chips
-  chipRow: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
-  chip: {
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    borderRadius: 999,
+  dateField: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     backgroundColor: palette.mist,
+    borderRadius: 14,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
   },
-  chipActive: { backgroundColor: palette.indigo },
-  chipText: { fontSize: 13, fontWeight: "600", color: palette.indigo },
-  chipTextActive: { color: palette.bg },
+  dateFieldText: {
+    fontSize: 15,
+    color: palette.ink,
+  },
 
   // Amount field
   amountField: {

@@ -1,8 +1,21 @@
+import {
+  DisplayAccount,
+  getTransactionHistory,
+  useCurrentAccount,
+} from "@/api/mainapi/mainapi";
+import { StorageService } from "@/api/storageService";
+import { TransactionHistoryItem } from "@/api/type";
 import { Feather, Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import React, { useState } from "react";
-import { Pressable, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import React, { useEffect, useState } from "react";
+import {
+  Pressable,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
 const colors = {
   purple900: "#26215C",
@@ -41,33 +54,11 @@ const palette = {
   dangerBg: "#FBE7EA",
 } as const;
 
-interface Account {
-  initials: string;
-  greeting: string;
-  name: string;
-  balance: number;
-  accountNumber: string;
-  bankName: string;
-  tier: string;
-  points: number;
-}
-
-const ACCOUNT: Account = {
-  initials: "OO",
-  greeting: "Good afternoon",
-  name: "Olamide Oladele",
-  balance: 482150,
-  accountNumber: "0123456789",
-  bankName: "Nomba",
-  tier: "Hustler",
-  points: 1240,
-};
-
 interface ChatHeaderProps {
-  account: Account;
+  account: DisplayAccount;
   balanceHidden: boolean;
   onToggleBalance: () => void;
-  topInset: number;
+  topInset?: number;
 }
 
 interface TransactionItemProps {
@@ -79,6 +70,22 @@ interface TransactionItemProps {
   icon: keyof typeof Ionicons.glyphMap;
 }
 
+const getRelativeTime = (value?: string) => {
+  if (!value) return "Just now";
+
+  const diff = Date.now() - new Date(value).getTime();
+  const minutes = Math.floor(diff / 60000);
+  if (minutes < 60) return `${minutes}m ago`;
+
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+
+  const days = Math.floor(hours / 24);
+  if (days < 7) return `${days}d ago`;
+
+  return new Date(value).toLocaleDateString();
+};
+
 const formatPoints = (value: number): string =>
   Number(value).toLocaleString("en-NG");
 
@@ -86,7 +93,6 @@ const formatMoney = (value: number): string =>
   "₦" + Number(value).toLocaleString("en-NG", { maximumFractionDigits: 0 });
 
 const FONT_NUMERIC = "SpaceGrotesk_600SemiBold";
-``;
 
 function ChatHeader({
   account,
@@ -204,20 +210,46 @@ function MoneySummary() {
 }
 
 export default function Chat() {
+  const { account } = useCurrentAccount();
   const [balanceHidden, setBalanceHidden] = useState(false);
+  const [walletSetupCompleted, setWalletSetupCompleted] = useState(false);
+  const [transactions, setTransactions] = useState<TransactionHistoryItem[]>(
+    [],
+  );
+
+  useEffect(() => {
+    const loadState = async () => {
+      const completed = await StorageService.getItem("walletSetupCompleted");
+      setWalletSetupCompleted(Boolean(completed));
+
+      try {
+        const response = await getTransactionHistory();
+        setTransactions(response?.data?.transactions || []);
+      } catch {
+        setTransactions([]);
+      }
+    };
+
+    loadState();
+  }, []);
+
+  const showKycNotice = !walletSetupCompleted && !account.hasWallet;
 
   return (
     <View style={styles.screen}>
       <StatusBar style="dark" />
 
       <ChatHeader
-        account={ACCOUNT}
+        account={account}
         balanceHidden={balanceHidden}
         onToggleBalance={() => setBalanceHidden((v) => !v)}
       />
       <View style={{ flex: 1, paddingHorizontal: 18, paddingTop: 20 }}>
         <View style={styles.quickActionRow}>
-          <Pressable onPress={() => router.navigate("/chat")} style={styles.actionCard}>
+          <Pressable
+            onPress={() => router.navigate("/chat")}
+            style={styles.actionCard}
+          >
             <View
               style={[
                 styles.actionIcon,
@@ -229,7 +261,10 @@ export default function Chat() {
             <Text style={styles.actionTitle}>Chat transfer</Text>
             <Text style={styles.actionSubtitle}>Send money through chat</Text>
           </Pressable>
-          <Pressable onPress={() => router.navigate("/fundme")} style={styles.actionCard}>
+          <Pressable
+            onPress={() => router.navigate("/fundme")}
+            style={styles.actionCard}
+          >
             <View
               style={[styles.actionIcon, { backgroundColor: colors.purple100 }]}
             >
@@ -240,39 +275,48 @@ export default function Chat() {
           </Pressable>
         </View>
         {/* <MoneySummary /> */}
+        {showKycNotice ? (
+          <TouchableOpacity
+            style={styles.kycCard}
+            onPress={() => router.navigate("/(mainapp)/kyc" as any)}
+            activeOpacity={0.9}
+          >
+            <View style={styles.kycIconWrap}>
+              <Feather name="shield" size={18} color={palette.indigo} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.kycTitle}>Complete your KYC</Text>
+              <Text style={styles.kycSubtitle}>
+                Set up your wallet and unlock transfers.
+              </Text>
+            </View>
+            <Feather name="arrow-right" size={18} color={palette.muted} />
+          </TouchableOpacity>
+        ) : null}
+
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Transaction history</Text>
           <View style={styles.historyCard}>
-            <TransactionItem
-              title="Wallet funding"
-              category="Deposit"
-              amount="+ ₦50,000"
-              time="2m ago"
-              positive
-              icon="wallet"
-            />
-            <TransactionItem
-              title="Sent to John"
-              category="Transfer"
-              amount="- ₦15,000"
-              time="1h ago"
-              icon="paper-plane"
-            />
-            <TransactionItem
-              title="Netflix"
-              category="Subscription"
-              amount="- ₦4,500"
-              time="Yesterday"
-              icon="play"
-            />
-            <TransactionItem
-              title="Cashback reward"
-              category="Reward"
-              amount="+ ₦2,000"
-              time="3 days ago"
-              positive
-              icon="gift"
-            />
+            {transactions.length === 0 ? (
+              <View style={styles.emptyState}>
+                <Text style={styles.emptyText}>No transactions yet.</Text>
+              </View>
+            ) : (
+              transactions.map((item, index) => {
+                const positive = item.type === "credit";
+                return (
+                  <TransactionItem
+                    key={`${item.createdAt || index}`}
+                    title={positive ? "Wallet credit" : "Wallet debit"}
+                    category={positive ? "Credit" : "Debit"}
+                    amount={`${positive ? "+" : "-"} ₦${Number(item.amount || 0).toLocaleString("en-NG")}`}
+                    time={getRelativeTime(item.createdAt)}
+                    positive={positive}
+                    icon={positive ? "wallet" : "paper-plane"}
+                  />
+                );
+              })
+            )}
           </View>
         </View>
       </View>
@@ -432,6 +476,27 @@ const styles = StyleSheet.create({
   },
 
   // Transaction history
+  kycCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: palette.bg,
+    borderRadius: 20,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: palette.hairline,
+    marginBottom: 16,
+  },
+  kycIconWrap: {
+    width: 40,
+    height: 40,
+    borderRadius: 14,
+    backgroundColor: palette.mist,
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 12,
+  },
+  kycTitle: { fontSize: 14, fontWeight: "700", color: palette.ink },
+  kycSubtitle: { fontSize: 12, color: palette.muted, marginTop: 3 },
   section: { marginTop: 4 },
   sectionTitle: { fontSize: 15, fontWeight: "700", color: palette.ink },
   historyCard: {
@@ -469,4 +534,13 @@ const styles = StyleSheet.create({
   amountBox: { alignItems: "flex-end" },
   activityAmount: { fontWeight: "700", fontSize: 13 },
   activityTime: { color: palette.muted, fontSize: 11, marginTop: 3 },
+  emptyState: {
+    paddingVertical: 16,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  emptyText: {
+    color: palette.muted,
+    fontSize: 13,
+  },
 });
