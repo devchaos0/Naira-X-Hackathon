@@ -1,9 +1,9 @@
-import { setupWallet } from "@/api/mainapi/mainapi";
+import { setupWallet, useCurrentAccount } from "@/api/mainapi/mainapi";
 import { StorageService } from "@/api/storageService";
 import { getApiErrorMessage } from "@/utils/apiError";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Alert,
   KeyboardAvoidingView,
@@ -30,6 +30,7 @@ const palette = {
 export default function KycSetupScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { account, refetch: refetchCurrentUser } = useCurrentAccount();
   const [form, setForm] = useState({
     accountName: "",
     bvn: "",
@@ -42,6 +43,14 @@ export default function KycSetupScreen() {
   const handleChange = (field: keyof typeof form, value: string) => {
     setForm((current) => ({ ...current, [field]: value }));
   };
+
+  useEffect(() => {
+    setForm((current) =>
+      current.accountName && current.accountName !== "Naira X User"
+        ? current
+        : { ...current, accountName: account.name },
+    );
+  }, [account.name]);
 
   const handleSubmit = async () => {
     if (!form.accountName || !form.bvn || !form.age || !form.pin) {
@@ -62,6 +71,7 @@ export default function KycSetupScreen() {
 
       if (response?.success) {
         await StorageService.setItem("walletSetupCompleted", true);
+        await refetchCurrentUser();
         Alert.alert(
           "Success",
           response.message || "Wallet created successfully.",

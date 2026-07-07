@@ -201,7 +201,7 @@ export default function CrowdFundDetail() {
         )}
 
         {/* CONTRIBUTORS */}
-        <View style={styles.leader}>
+        {/* <View style={styles.leader}>
           <Text style={styles.sectionTitle}>Top contributors</Text>
 
           {mockMembers.map((member, index) => (
@@ -218,7 +218,7 @@ export default function CrowdFundDetail() {
               <Text style={styles.memberAmount}>{formatNaira(member.amount)}</Text>
             </View>
           ))}
-        </View>
+        </View> */}
 
         <Text style={styles.created}>Created {createdAt}</Text>
       </ScrollView>

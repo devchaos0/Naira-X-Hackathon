@@ -89,6 +89,49 @@ export interface WalletSetupResponse {
   }>;
 }
 
+export interface TransactionHistoryItem {
+  type?: "credit" | "debit" | string;
+  amount?: number;
+  createdAt?: string;
+}
+
+export interface TransactionHistoryResponse {
+  success: boolean;
+  message?: string;
+  data?: {
+    transactions?: TransactionHistoryItem[];
+    pagination?: {
+      page?: number;
+      limit?: number;
+      total?: number;
+      totalPages?: number;
+    };
+  };
+  code?: string;
+  errors?: Array<{
+    field?: string;
+    message?: string;
+  }>;
+}
+
+export interface LeaderboardUser {
+  firstName?: string;
+  lastName?: string;
+  xPoints?: number;
+  tier?: string;
+}
+
+export interface LeaderboardResponse {
+  success: boolean;
+  message?: string;
+  data?: LeaderboardUser[];
+  code?: string;
+  errors?: Array<{
+    field?: string;
+    message?: string;
+  }>;
+}
+
 export interface ChatMessagePayload {
   message: string;
 }
@@ -195,6 +238,29 @@ export interface AuthUser {
   isVerified?: boolean;
   lastLoginAt?: string;
   createdAt?: string;
+  tier?: string;
+  xPoints?: number;
+  account?: {
+    accountNumber?: string;
+    bankName?: string;
+    accountName?: string;
+    availableBalance?: number;
+    currency?: string;
+    status?: string;
+  };
+}
+
+export interface AuthMeResponse {
+  success: boolean;
+  data?: {
+    user?: AuthUser;
+  };
+  message?: string;
+  code?: string;
+  errors?: Array<{
+    field?: string;
+    message?: string;
+  }>;
 }
 
 export interface VerifyEmailResponse {
